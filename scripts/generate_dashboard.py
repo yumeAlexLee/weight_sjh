@@ -421,9 +421,6 @@ def generate_html(records, stats):
                   return context.parsed.y + 'kg';
                 }}
               }}
-            }},
-            annotation: {{
-              annotations: annotations
             }}
           }},
           scales: {{
