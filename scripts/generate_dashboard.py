@@ -10,7 +10,7 @@ from datetime import datetime
 
 CSV_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "weight.csv")
 HTML_PATH = os.path.join(os.path.dirname(__file__), "..", "docs", "index.html")
-TARGET_WEIGHT = 55
+TARGET_WEIGHT = 50
 
 
 def read_weight_data():
