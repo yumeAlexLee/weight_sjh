@@ -98,118 +98,158 @@ def generate_html(records, stats):
       background: #0f172a;
       color: #e2e8f0;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
+      padding: 16px;
     }}
-    .container {{ max-width: 900px; width: 100%; }}
-    h1 {{ font-size: 24px; font-weight: 600; margin: 20px 0 4px; color: #f1f5f9; }}
-    .subtitle {{ color: #64748b; font-size: 14px; margin-bottom: 20px; }}
+    .container {{ max-width: 900px; width: 100%; margin: 0 auto; }}
+
+    .header {{ padding: 8px 0 16px; }}
+    .header h1 {{ font-size: 22px; font-weight: 700; color: #f1f5f9; }}
+    .header p {{ color: #64748b; font-size: 13px; margin-top: 2px; }}
+
     .stats-grid {{
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px;
-      margin-bottom: 24px;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
     }}
     .stat-card {{
       background: #1e293b;
-      border-radius: 12px;
-      padding: 16px;
+      border-radius: 14px;
+      padding: 14px 12px;
       text-align: center;
       border: 1px solid #334155;
     }}
-    .stat-card .label {{ font-size: 12px; color: #64748b; margin-bottom: 4px; }}
-    .stat-card .value {{ font-size: 26px; font-weight: 700; }}
+    .stat-card .label {{ font-size: 11px; color: #64748b; margin-bottom: 2px; letter-spacing: 0.3px; }}
+    .stat-card .value {{ font-size: 24px; font-weight: 700; line-height: 1.3; }}
     .stat-card .value.loss {{ color: #22c55e; }}
     .stat-card .value.gain {{ color: #ef4444; }}
-    .chart-wrapper, .table-wrapper, .form-wrapper {{
-      background: #1e293b;
-      border-radius: 12px;
-      padding: 20px;
-      border: 1px solid #334155;
-      margin-bottom: 20px;
-    }}
-    .section-title {{ font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #cbd5e1; }}
-    table {{ width: 100%; border-collapse: collapse; font-size: 14px; }}
-    th {{ text-align: left; padding: 8px 12px; color: #64748b; font-weight: 500; border-bottom: 1px solid #334155; }}
-    td {{ padding: 8px 12px; border-bottom: 1px solid #1e293b; }}
-    tr:hover td {{ background: #1a2332; }}
-    .note {{ color: #94a3b8; font-size: 12px; }}
+    .stat-card .value.neutral {{ color: #facc15; }}
 
-    /* Form */
-    .form-row {{
+    .card {{
+      background: #1e293b;
+      border-radius: 14px;
+      padding: 18px;
+      border: 1px solid #334155;
+      margin-bottom: 16px;
+    }}
+    .card-title {{
+      font-size: 14px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 14px;
       display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      align-items: flex-end;
+      align-items: center;
+      gap: 6px;
+    }}
+
+    .form-grid {{
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }}
+    .form-row-inputs {{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
     }}
     .form-group {{ display: flex; flex-direction: column; gap: 4px; }}
-    .form-group label {{ font-size: 12px; color: #64748b; }}
-    .form-group input {{
+    .form-group label {{ font-size: 12px; color: #64748b; font-weight: 500; }}
+    .form-group input, .form-group select {{
       background: #0f172a;
       border: 1px solid #334155;
-      border-radius: 8px;
-      padding: 10px 14px;
+      border-radius: 10px;
+      padding: 12px 14px;
       color: #e2e8f0;
-      font-size: 14px;
+      font-size: 16px;
       outline: none;
       transition: border-color 0.2s;
+      -webkit-appearance: none;
+      appearance: none;
     }}
     .form-group input:focus {{ border-color: #3b82f6; }}
     .form-group input::placeholder {{ color: #475569; }}
     .btn {{
-      background: #3b82f6;
+      width: 100%;
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
       color: white;
       border: none;
-      border-radius: 8px;
-      padding: 10px 24px;
-      font-size: 14px;
-      font-weight: 500;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: opacity 0.2s;
+      letter-spacing: 0.3px;
     }}
-    .btn:hover {{ background: #2563eb; }}
-    .btn:disabled {{ opacity: 0.5; cursor: not-allowed; }}
+    .btn:active {{ opacity: 0.85; }}
+    .btn:disabled {{ opacity: 0.4; cursor: not-allowed; }}
+
+    .chart-wrapper {{ padding: 0; border: none; background: transparent; }}
+    .chart-wrapper canvas {{ width: 100% !important; }}
+
+    .table-wrap {{ overflow-x: auto; margin-top: -4px; }}
+    table {{ width: 100%; border-collapse: collapse; font-size: 14px; }}
+    th {{
+      text-align: left;
+      padding: 10px 12px;
+      color: #64748b;
+      font-weight: 500;
+      font-size: 12px;
+      border-bottom: 1px solid #334155;
+    }}
+    td {{ padding: 10px 12px; border-bottom: 1px solid #1e293b; }}
+    td:first-child {{ font-family: 'SF Mono', 'Cascadia Code', monospace; font-size: 13px; }}
+    tr:last-child td {{ border-bottom: none; }}
+    .note {{ color: #94a3b8; font-size: 12px; }}
+
     .toast {{
       position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 10px 20px;
-      border-radius: 8px;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      padding: 14px 18px;
+      border-radius: 12px;
       font-size: 14px;
+      font-weight: 500;
       z-index: 100;
       display: none;
+      text-align: center;
     }}
     .toast.success {{ background: #166534; color: #bbf7d0; display: block; }}
     .toast.error {{ background: #7f1d1d; color: #fecaca; display: block; }}
-    @media (max-width: 600px) {{
-      .stats-grid {{ grid-template-columns: repeat(2, 1fr); }}
-      h1 {{ font-size: 20px; }}
-      .form-row {{ flex-direction: column; }}
-      .form-group input {{ width: 100%; }}
-      .btn {{ width: 100%; }}
+
+    .footer {{ text-align: center; color: #475569; font-size: 12px; padding: 8px 0 40px; }}
+
+    @media (min-width: 640px) {{
+      body {{ padding: 32px; }}
+      .header h1 {{ font-size: 26px; }}
+      .stats-grid {{ grid-template-columns: repeat(4, 1fr); gap: 12px; }}
+      .form-row-inputs {{ grid-template-columns: 1fr 1fr 1fr; }}
+      .card {{ padding: 24px; }}
     }}
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>📉 体重记录</h1>
-    <p class="subtitle">记录你的每日体重变化</p>
+    <div class="header">
+      <h1>📉 体重记录</h1>
+      <p>记录每日体重变化</p>
+    </div>
 
     {stats_cards}
 
-    <div class="form-wrapper">
-      <div class="section-title">✏️ 记录体重</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>日期</label>
-          <input type="date" id="input-date">
-        </div>
-        <div class="form-group">
-          <label>体重 (kg)</label>
-          <input type="number" id="input-weight" step="0.1" min="30" max="120" placeholder="55.0">
+    <div class="card">
+      <div class="card-title">✏️ 记录体重</div>
+      <div class="form-grid">
+        <div class="form-row-inputs">
+          <div class="form-group">
+            <label>日期</label>
+            <input type="date" id="input-date">
+          </div>
+          <div class="form-group">
+            <label>体重 (kg)</label>
+            <input type="number" id="input-weight" step="0.1" min="30" max="120" placeholder="55.0">
+          </div>
         </div>
         <div class="form-group">
           <label>备注 (可选)</label>
@@ -220,24 +260,26 @@ def generate_html(records, stats):
       <div id="toast" class="toast"></div>
     </div>
 
-    <div class="chart-wrapper">
-      <div class="section-title">📊 体重变化曲线</div>
-      <canvas id="weightChart"></canvas>
+    <div class="card">
+      <div class="card-title">📊 体重变化曲线</div>
+      <div class="chart-wrapper">
+        <canvas id="weightChart"></canvas>
+      </div>
     </div>
 
-    <div class="table-wrapper">
-      <div class="section-title">📋 记录明细</div>
-      <table>
-        <thead>
-          <tr><th>日期</th><th>体重 (kg)</th><th>备注</th></tr>
-        </thead>
-        <tbody>{rows_html}</tbody>
-      </table>
+    <div class="card">
+      <div class="card-title">📋 记录明细</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>日期</th><th>体重</th><th>备注</th></tr>
+          </thead>
+          <tbody>{rows_html}</tbody>
+        </table>
+      </div>
     </div>
 
-    <div class="footer" style="text-align:center;color:#475569;font-size:12px;margin:20px 0;">
-      在网站上记录体重即可
-    </div>
+    <div class="footer">在网站上记录体重即可 ✨</div>
   </div>
 
   <script>
