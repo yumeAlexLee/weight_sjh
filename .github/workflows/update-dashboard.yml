@@ -37,5 +37,5 @@ jobs:
 
       - name: Sync to Gitee
         run: |
-          git remote add gitee https://alex-leee:81f6bab05f69695cfb2c5f8f38d25bdb@gitee.com/alex-leee/weight-xmt.git
-          git push gitee main -f
+          git remote add gitee https://alex-leee:${{ secrets.GITEE_TOKEN }}@gitee.com/alex-leee/weight-xmt.git
+          git push gitee main -f || echo "⚠️ Gitee sync skipped (no token)"
