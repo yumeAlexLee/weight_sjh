@@ -24,10 +24,18 @@ jobs:
       - name: Generate dashboard
         run: python scripts/generate_dashboard.py
 
-      - name: Commit and push
+      - name: Generate Gitee version
+        run: python scripts/generate_gitee.py
+
+      - name: Commit and push to GitHub
         run: |
           git config user.name "yumeAlexLee"
           git config user.email "yumealexlee@gmail.com"
-          git add docs/index.html
+          git add docs/index.html docs/index-gitee.html
           git diff --staged --quiet || git commit -m "auto: update weight dashboard"
           git push
+
+      - name: Sync to Gitee
+        run: |
+          git remote add gitee https://alex-leee:81f6bab05f69695cfb2c5f8f38d25bdb@gitee.com/alex-leee/weight-xmt.git
+          git push gitee main -f
