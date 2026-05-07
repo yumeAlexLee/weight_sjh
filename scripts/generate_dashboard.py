@@ -47,11 +47,33 @@ def compute_stats(records):
 def generate_html(records, stats):
     dates = [r["date"] for r in records]
     weights = [r["weight"] for r in records]
-    target_line = [TARGET_WEIGHT] * len(records)
+    short_dates = [d[5:] for d in dates]  # "2026-03-11" → "03-11"
 
-    start_weight = stats["start_weight"] if stats else TARGET_WEIGHT
+    # 7-day moving average
+    ma7 = []
+    for i in range(len(weights)):
+        if i < 6:
+            ma7.append(None)
+        else:
+            ma7.append(round(sum(weights[i-6:i+1]) / 7, 2))
 
-    chart_data = json.dumps({"labels": dates, "weights": weights, "target": TARGET_WEIGHT})
+    # Find min/max
+    max_w = max(weights) if weights else 0
+    min_w = min(weights) if weights else 0
+    max_idx = weights.index(max_w) if weights else 0
+    min_idx = weights.index(min_w) if weights else 0
+
+    chart_data = json.dumps({
+        "labels": short_dates,
+        "weights": weights,
+        "ma7": ma7,
+        "target": TARGET_WEIGHT,
+        "maxIdx": max_idx,
+        "maxVal": max_w,
+        "minIdx": min_idx,
+        "minVal": min_w,
+        "rawDates": dates,
+    })
 
     rows_html = ""
     if records:
@@ -287,45 +309,99 @@ def generate_html(records, stats):
 
     function initChart() {{
       const ctx = document.getElementById('weightChart').getContext('2d');
-      const targetLine = new Array(chartData.labels.length).fill(chartData.target);
+
+      // Build datasets
+      var datasets = [
+        {{
+          label: '体重 (kg)',
+          data: chartData.weights,
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59, 130, 246, 0.08)',
+          borderWidth: 2.5,
+          pointRadius: 0,
+          pointHitRadius: 8,
+          tension: 0.3,
+          fill: true,
+        }}
+      ];
+
+      // 7-day MA
+      if (chartData.ma7 && chartData.ma7.filter(function(v) {{ return v !== null; }}).length > 0) {{
+        datasets.push({{
+          label: '7日平均',
+          data: chartData.ma7,
+          borderColor: 'rgba(251, 146, 60, 0.7)',
+          borderWidth: 2,
+          borderDash: [6, 3],
+          pointRadius: 0,
+          tension: 0.4,
+          fill: false,
+        }});
+      }}
+
+      // Target line
+      var targetLine = new Array(chartData.labels.length).fill(chartData.target);
+      datasets.push({{
+        label: '目标 ' + chartData.target + 'kg',
+        data: targetLine,
+        borderColor: 'rgba(34, 197, 94, 0.3)',
+        borderWidth: 1,
+        borderDash: [4, 4],
+        pointRadius: 0,
+        fill: false,
+      }});
+
+      // Custom plugin for min/max labels (no external CDN needed)
+      var labelPlugin = {{
+        id: 'minMaxLabels',
+        afterDraw: function(chart) {{
+          var ctx = chart.ctx;
+          var meta = chart.getDatasetMeta(0);
+          if (!meta || !meta.data || meta.data.length < 3) return;
+          var maxPt = meta.data[chartData.maxIdx];
+          var minPt = meta.data[chartData.minIdx];
+          if (!maxPt || !minPt) return;
+
+          ctx.save();
+          ctx.textAlign = 'center';
+
+          // Max label (red dot + value)
+          var mx = maxPt.x, my = maxPt.y;
+          ctx.beginPath();
+          ctx.arc(mx, my, 4, 0, Math.PI * 2);
+          ctx.fillStyle = '#ef4444';
+          ctx.fill();
+          ctx.font = 'bold 10px -apple-system, sans-serif';
+          ctx.fillStyle = '#fca5a5';
+          ctx.fillText(chartData.maxVal + 'kg', mx, my - 12);
+
+          // Min label (green dot + value)
+          var nx = minPt.x, ny = minPt.y;
+          ctx.beginPath();
+          ctx.arc(nx, ny, 4, 0, Math.PI * 2);
+          ctx.fillStyle = '#22c55e';
+          ctx.fill();
+          ctx.font = 'bold 10px -apple-system, sans-serif';
+          ctx.fillStyle = '#86efac';
+          ctx.fillText(chartData.minVal + 'kg', nx, ny + 18);
+
+          ctx.restore();
+        }}
+      }};
+
       new Chart(ctx, {{
         type: 'line',
-        data: {{
-          labels: chartData.labels,
-          datasets: [
-            {{
-              label: '体重 (kg)',
-              data: chartData.weights,
-              borderColor: '#3b82f6',
-              backgroundColor: 'rgba(59, 130, 246, 0.1)',
-              borderWidth: 3,
-              pointBackgroundColor: '#3b82f6',
-              pointBorderColor: '#1e293b',
-              pointBorderWidth: 2,
-              pointRadius: 5,
-              pointHoverRadius: 8,
-              tension: 0.3,
-              fill: true,
-            }},
-            {{
-              label: `目标 ${{chartData.target}}kg`,
-              data: targetLine,
-              borderColor: '#22c55e',
-              borderWidth: 2,
-              borderDash: [8, 4],
-              pointRadius: 0,
-              pointHoverRadius: 0,
-            }}
-          ]
-        }},
+        data: {{ labels: chartData.labels, datasets: datasets }},
         options: {{
           responsive: true,
           maintainAspectRatio: true,
-          aspectRatio: 1.8,
+          aspectRatio: 1.6,
           interaction: {{ intersect: false, mode: 'index' }},
           plugins: {{
             legend: {{
-              labels: {{ color: '#94a3b8', font: {{ size: 13 }}, usePointStyle: true, padding: 16 }}
+              position: 'top',
+              align: 'start',
+              labels: {{ color: '#94a3b8', font: {{ size: 11 }}, usePointStyle: true, padding: 12, boxWidth: 10 }}
             }},
             tooltip: {{
               backgroundColor: '#1e293b',
@@ -333,21 +409,50 @@ def generate_html(records, stats):
               bodyColor: '#cbd5e1',
               borderColor: '#334155',
               borderWidth: 1,
-              padding: 12,
+              padding: 10,
               cornerRadius: 8,
               callbacks: {{
+                title: function(items) {{
+                  var i = items[0].dataIndex;
+                  return chartData.rawDates ? chartData.rawDates[i] : items[0].label;
+                }},
                 label: function(context) {{
                   if (context.dataset.label.includes('目标')) return context.dataset.label;
                   return context.parsed.y + 'kg';
                 }}
               }}
+            }},
+            annotation: {{
+              annotations: annotations
             }}
           }},
           scales: {{
-            x: {{ grid: {{ color: 'rgba(51, 65, 85, 0.5)' }}, ticks: {{ color: '#64748b', maxTicksLimit: 15 }} }},
-            y: {{ min: 40, max: 80, grid: {{ color: 'rgba(51, 65, 85, 0.5)' }}, ticks: {{ color: '#64748b', stepSize: 2, callback: function(v) {{ return v + 'kg'; }} }} }}
+            x: {{
+              grid: {{ display: false }},
+              ticks: {{
+                color: '#64748b',
+                font: {{ size: 10 }},
+                maxRotation: 0,
+                maxTicksLimit: 12,
+                callback: function(val, idx) {{
+                  return chartData.labels[idx];
+                }}
+              }}
+            }},
+            y: {{
+              min: 50,
+              max: 65,
+              grid: {{ color: 'rgba(51, 65, 85, 0.4)' }},
+              ticks: {{
+                color: '#64748b',
+                font: {{ size: 11 }},
+                stepSize: 1,
+                callback: function(v) {{ return v + 'kg'; }}
+              }}
+            }}
           }}
-        }}
+        }},
+        plugins: [labelPlugin]
       }});
     }}
 

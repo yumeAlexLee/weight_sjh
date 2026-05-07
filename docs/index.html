@@ -215,49 +215,103 @@
   </div>
 
   <script>
-    const chartData = {"labels": ["2026-03-11", "2026-03-12", "2026-03-13", "2026-03-14", "2026-03-15", "2026-03-16", "2026-03-17", "2026-03-18", "2026-03-19", "2026-03-20", "2026-03-21", "2026-03-22", "2026-03-23", "2026-03-24", "2026-03-25", "2026-03-26", "2026-03-27", "2026-03-28", "2026-03-29", "2026-03-30", "2026-04-01", "2026-04-02", "2026-04-03", "2026-04-04", "2026-04-05", "2026-04-06", "2026-04-07", "2026-04-08", "2026-04-09", "2026-04-10", "2026-04-11", "2026-04-12", "2026-04-13", "2026-04-14", "2026-04-15", "2026-04-16", "2026-04-17", "2026-04-18", "2026-04-19", "2026-04-20", "2026-04-21", "2026-04-22", "2026-04-23", "2026-04-24", "2026-04-25", "2026-04-26", "2026-04-27", "2026-04-28"], "weights": [59.55, 59.15, 59.2, 59.5, 57.95, 58.7, 59.2, 59.0, 59.3, 59.15, 58.85, 58.4, 58.9, 59.25, 58.7, 59.4, 58.25, 58.75, 58.75, 58.9, 58.8, 59.2, 58.9, 59.6, 59.7, 59.1, 59.7, 59.2, 59.4, 59.1, 58.9, 59.0, 59.0, 59.2, 59.0, 58.85, 59.4, 58.75, 59.1, 58.9, 59.2, 59.85, 59.9, 59.4, 59.2, 59.4, 59.9, 59.7], "target": 50};
+    const chartData = {"labels": ["03-11", "03-12", "03-13", "03-14", "03-15", "03-16", "03-17", "03-18", "03-19", "03-20", "03-21", "03-22", "03-23", "03-24", "03-25", "03-26", "03-27", "03-28", "03-29", "03-30", "04-01", "04-02", "04-03", "04-04", "04-05", "04-06", "04-07", "04-08", "04-09", "04-10", "04-11", "04-12", "04-13", "04-14", "04-15", "04-16", "04-17", "04-18", "04-19", "04-20", "04-21", "04-22", "04-23", "04-24", "04-25", "04-26", "04-27", "04-28"], "weights": [59.55, 59.15, 59.2, 59.5, 57.95, 58.7, 59.2, 59.0, 59.3, 59.15, 58.85, 58.4, 58.9, 59.25, 58.7, 59.4, 58.25, 58.75, 58.75, 58.9, 58.8, 59.2, 58.9, 59.6, 59.7, 59.1, 59.7, 59.2, 59.4, 59.1, 58.9, 59.0, 59.0, 59.2, 59.0, 58.85, 59.4, 58.75, 59.1, 58.9, 59.2, 59.85, 59.9, 59.4, 59.2, 59.4, 59.9, 59.7], "ma7": [null, null, null, null, null, null, 59.04, 58.96, 58.98, 58.97, 58.88, 58.94, 58.97, 58.98, 58.94, 58.95, 58.82, 58.81, 58.86, 58.86, 58.79, 58.86, 58.79, 58.99, 59.12, 59.17, 59.29, 59.34, 59.37, 59.4, 59.3, 59.2, 59.19, 59.11, 59.09, 59.01, 59.05, 59.03, 59.04, 59.03, 59.03, 59.15, 59.3, 59.3, 59.36, 59.41, 59.55, 59.62], "target": 50, "maxIdx": 42, "maxVal": 59.9, "minIdx": 4, "minVal": 57.95, "rawDates": ["2026-03-11", "2026-03-12", "2026-03-13", "2026-03-14", "2026-03-15", "2026-03-16", "2026-03-17", "2026-03-18", "2026-03-19", "2026-03-20", "2026-03-21", "2026-03-22", "2026-03-23", "2026-03-24", "2026-03-25", "2026-03-26", "2026-03-27", "2026-03-28", "2026-03-29", "2026-03-30", "2026-04-01", "2026-04-02", "2026-04-03", "2026-04-04", "2026-04-05", "2026-04-06", "2026-04-07", "2026-04-08", "2026-04-09", "2026-04-10", "2026-04-11", "2026-04-12", "2026-04-13", "2026-04-14", "2026-04-15", "2026-04-16", "2026-04-17", "2026-04-18", "2026-04-19", "2026-04-20", "2026-04-21", "2026-04-22", "2026-04-23", "2026-04-24", "2026-04-25", "2026-04-26", "2026-04-27", "2026-04-28"]};
 
     function initChart() {
       const ctx = document.getElementById('weightChart').getContext('2d');
-      const targetLine = new Array(chartData.labels.length).fill(chartData.target);
+
+      // Build datasets
+      var datasets = [
+        {
+          label: '体重 (kg)',
+          data: chartData.weights,
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59, 130, 246, 0.08)',
+          borderWidth: 2.5,
+          pointRadius: 0,
+          pointHitRadius: 8,
+          tension: 0.3,
+          fill: true,
+        }
+      ];
+
+      // 7-day MA
+      if (chartData.ma7 && chartData.ma7.filter(function(v) { return v !== null; }).length > 0) {
+        datasets.push({
+          label: '7日平均',
+          data: chartData.ma7,
+          borderColor: 'rgba(251, 146, 60, 0.7)',
+          borderWidth: 2,
+          borderDash: [6, 3],
+          pointRadius: 0,
+          tension: 0.4,
+          fill: false,
+        });
+      }
+
+      // Target line
+      var targetLine = new Array(chartData.labels.length).fill(chartData.target);
+      datasets.push({
+        label: '目标 ' + chartData.target + 'kg',
+        data: targetLine,
+        borderColor: 'rgba(34, 197, 94, 0.3)',
+        borderWidth: 1,
+        borderDash: [4, 4],
+        pointRadius: 0,
+        fill: false,
+      });
+
+      // Custom plugin for min/max labels (no external CDN needed)
+      var labelPlugin = {
+        id: 'minMaxLabels',
+        afterDraw: function(chart) {
+          var ctx = chart.ctx;
+          var meta = chart.getDatasetMeta(0);
+          if (!meta || !meta.data || meta.data.length < 3) return;
+          var maxPt = meta.data[chartData.maxIdx];
+          var minPt = meta.data[chartData.minIdx];
+          if (!maxPt || !minPt) return;
+
+          ctx.save();
+          ctx.textAlign = 'center';
+
+          // Max label (red dot + value)
+          var mx = maxPt.x, my = maxPt.y;
+          ctx.beginPath();
+          ctx.arc(mx, my, 4, 0, Math.PI * 2);
+          ctx.fillStyle = '#ef4444';
+          ctx.fill();
+          ctx.font = 'bold 10px -apple-system, sans-serif';
+          ctx.fillStyle = '#fca5a5';
+          ctx.fillText(chartData.maxVal + 'kg', mx, my - 12);
+
+          // Min label (green dot + value)
+          var nx = minPt.x, ny = minPt.y;
+          ctx.beginPath();
+          ctx.arc(nx, ny, 4, 0, Math.PI * 2);
+          ctx.fillStyle = '#22c55e';
+          ctx.fill();
+          ctx.font = 'bold 10px -apple-system, sans-serif';
+          ctx.fillStyle = '#86efac';
+          ctx.fillText(chartData.minVal + 'kg', nx, ny + 18);
+
+          ctx.restore();
+        }
+      };
+
       new Chart(ctx, {
         type: 'line',
-        data: {
-          labels: chartData.labels,
-          datasets: [
-            {
-              label: '体重 (kg)',
-              data: chartData.weights,
-              borderColor: '#3b82f6',
-              backgroundColor: 'rgba(59, 130, 246, 0.1)',
-              borderWidth: 3,
-              pointBackgroundColor: '#3b82f6',
-              pointBorderColor: '#1e293b',
-              pointBorderWidth: 2,
-              pointRadius: 5,
-              pointHoverRadius: 8,
-              tension: 0.3,
-              fill: true,
-            },
-            {
-              label: `目标 ${chartData.target}kg`,
-              data: targetLine,
-              borderColor: '#22c55e',
-              borderWidth: 2,
-              borderDash: [8, 4],
-              pointRadius: 0,
-              pointHoverRadius: 0,
-            }
-          ]
-        },
+        data: { labels: chartData.labels, datasets: datasets },
         options: {
           responsive: true,
           maintainAspectRatio: true,
-          aspectRatio: 1.8,
+          aspectRatio: 1.6,
           interaction: { intersect: false, mode: 'index' },
           plugins: {
             legend: {
-              labels: { color: '#94a3b8', font: { size: 13 }, usePointStyle: true, padding: 16 }
+              position: 'top',
+              align: 'start',
+              labels: { color: '#94a3b8', font: { size: 11 }, usePointStyle: true, padding: 12, boxWidth: 10 }
             },
             tooltip: {
               backgroundColor: '#1e293b',
@@ -265,21 +319,50 @@
               bodyColor: '#cbd5e1',
               borderColor: '#334155',
               borderWidth: 1,
-              padding: 12,
+              padding: 10,
               cornerRadius: 8,
               callbacks: {
+                title: function(items) {
+                  var i = items[0].dataIndex;
+                  return chartData.rawDates ? chartData.rawDates[i] : items[0].label;
+                },
                 label: function(context) {
                   if (context.dataset.label.includes('目标')) return context.dataset.label;
                   return context.parsed.y + 'kg';
                 }
               }
+            },
+            annotation: {
+              annotations: annotations
             }
           },
           scales: {
-            x: { grid: { color: 'rgba(51, 65, 85, 0.5)' }, ticks: { color: '#64748b', maxTicksLimit: 15 } },
-            y: { min: 40, max: 80, grid: { color: 'rgba(51, 65, 85, 0.5)' }, ticks: { color: '#64748b', stepSize: 2, callback: function(v) { return v + 'kg'; } } }
+            x: {
+              grid: { display: false },
+              ticks: {
+                color: '#64748b',
+                font: { size: 10 },
+                maxRotation: 0,
+                maxTicksLimit: 12,
+                callback: function(val, idx) {
+                  return chartData.labels[idx];
+                }
+              }
+            },
+            y: {
+              min: 50,
+              max: 65,
+              grid: { color: 'rgba(51, 65, 85, 0.4)' },
+              ticks: {
+                color: '#64748b',
+                font: { size: 11 },
+                stepSize: 1,
+                callback: function(v) { return v + 'kg'; }
+              }
+            }
           }
-        }
+        },
+        plugins: [labelPlugin]
       });
     }
 
