@@ -299,7 +299,7 @@
         }
       };
 
-      new Chart(ctx, {
+      window.weightChart = new Chart(ctx, {
         type: 'line',
         data: { labels: chartData.labels, datasets: datasets },
         options: {
@@ -372,45 +372,103 @@
       if (chartData.labels.length > 0) initChart();
     });
 
-    function showToast(msg, type) {
-      var t = document.getElementById('toast');
-      t.textContent = msg;
-      t.className = 'toast ' + type;
-      setTimeout(function() { t.className = 'toast'; }, 3000);
-    }
+// 上次提交记录
+var lastSubmit = {};
 
-    function addWeight() {
-      var date = document.getElementById('input-date').value;
-      var weight = document.getElementById('input-weight').value;
-      var note = document.getElementById('input-note').value.trim();
-      if (!date) { showToast('请选择日期', 'error'); return; }
-      if (!weight) { showToast('请输入体重', 'error'); return; }
-      var btn = document.getElementById('btn-submit');
-      btn.disabled = true;
-      btn.textContent = '提交中...';
-      fetch('/api/add-weight', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: date, weight: parseFloat(weight), note: note })
-      })
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        if (data.success) {
-          showToast('✅ 记录成功！请刷新页面查看', 'success');
-          document.getElementById('input-weight').value = '';
-          document.getElementById('input-note').value = '';
-        } else {
-          showToast('❌ ' + (data.error || '提交失败'), 'error');
-        }
-      })
-      .catch(function(err) {
-        showToast('❌ 网络错误: ' + err.message, 'error');
-      })
-      .finally(function() {
-        btn.disabled = false;
-        btn.textContent = '提交';
-      });
+function showToast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  setTimeout(function() { t.className = 'toast'; }, 3000);
+}
+
+function updateStats(weightVal) {
+  // Update current weight
+  document.querySelector('.stat-card:nth-child(1) .value').textContent = weightVal + 'kg';
+  // Update remaining
+  var rem = parseFloat(Math.max(0, weightVal - chartData.target).toFixed(1));
+  document.querySelector('.stat-card:nth-child(3) .value').textContent = rem + 'kg';
+  // Increment days count
+  var daysEl = document.querySelector('.stat-card:nth-child(4) .value');
+  var days = parseInt(daysEl.textContent) + 1;
+  daysEl.textContent = days + '天';
+  // Update "已减" using first record weight vs current
+  var firstW = chartData.weights[0];
+  var lost = parseFloat((firstW - weightVal).toFixed(1));
+  var lostEl = document.querySelector('.stat-card:nth-child(2) .value');
+  lostEl.textContent = (lost > 0 ? '' : '') + lost + 'kg';
+  lostEl.className = 'value ' + (lost > 0 ? 'loss' : lost < 0 ? 'gain' : 'neutral');
+}
+
+function addWeight() {
+  var date = document.getElementById('input-date').value;
+  var weight = document.getElementById('input-weight').value;
+  var note = document.getElementById('input-note').value.trim();
+  if (!date) { showToast('请选择日期', 'error'); return; }
+  if (!weight) { showToast('请输入体重', 'error'); return; }
+  var btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  btn.textContent = '提交中...';
+  fetch('/api/add-weight', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ date: date, weight: parseFloat(weight), note: note })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.success) {
+      var w = parseFloat(weight);
+      var label = date.slice(5); // "MM-DD"
+
+      // 1. Add row to table (prepend, newest first)
+      var tbody = document.querySelector('table tbody');
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + date + '</td><td>' + w + '</td><td class="note">' + (note || '') + '</td>';
+      tbody.insertBefore(tr, tbody.firstChild);
+
+      // 2. Update chartData arrays
+      chartData.labels.push(label);
+      chartData.weights.push(w);
+      chartData.rawDates.push(date);
+
+      // 3. Recalculate 7-day MA for new point
+      var len = chartData.weights.length;
+      if (len >= 7) {
+        var sum = 0;
+        for (var i = len - 7; i < len; i++) sum += chartData.weights[i];
+        chartData.ma7.push(parseFloat((sum / 7).toFixed(2)));
+      } else {
+        chartData.ma7.push(null);
+      }
+
+      // 4. Update min/max
+      if (w >= chartData.maxVal) { chartData.maxVal = w; chartData.maxIdx = len - 1; }
+      if (w <= chartData.minVal) { chartData.minVal = w; chartData.minIdx = len - 1; }
+
+      // 5. Update stats cards
+      updateStats(w);
+
+      // 6. Rebuild chart (simplest reliable approach)
+      if (window.weightChart) {
+        window.weightChart.destroy();
+      }
+      initChart();
+
+      showToast('✅ 记录成功！', 'success');
+      document.getElementById('input-weight').value = '';
+      document.getElementById('input-note').value = '';
+    } else {
+      showToast('❌ ' + (data.error || '提交失败'), 'error');
     }
+  })
+  .catch(function(err) {
+    showToast('❌ 网络错误: ' + err.message, 'error');
+  })
+  .finally(function() {
+    btn.disabled = false;
+    btn.textContent = '提交';
+  });
+}
   </script>
 </body>
 </html>
