@@ -376,7 +376,7 @@ def generate_html(records, stats):
         if (weights[i] < minVal) {{ minVal = weights[i]; minIdx = i; }}
       }}
 
-      if (window.weightChart) window.weightChart.destroy();
+      if (window._weightChart) window._weightChart.destroy();
       buildChart(labels, weights, ma7, rawDates, maxIdx, maxVal, minIdx, minVal);
     }}
 
@@ -456,7 +456,7 @@ def generate_html(records, stats):
         }}
       }};
 
-      window.weightChart = new Chart(ctx, {{
+      window._weightChart = new Chart(ctx, {{
         type: 'line',
         data: {{ labels: labels, datasets: datasets }},
         options: {{
