@@ -498,9 +498,6 @@ def generate_html(records, stats):
                 font: {{ size: 10 }},
                 maxRotation: 0,
                 maxTicksLimit: 12,
-                callback: function(val) {{
-                  return val;
-                }}
               }}
             }},
             y: {{
