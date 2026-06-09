@@ -6,7 +6,7 @@ data/weight.csv → docs/index.html
 import csv
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 CSV_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "weight.csv")
 HTML_PATH = os.path.join(os.path.dirname(__file__), "..", "docs", "index.html")
@@ -164,6 +164,32 @@ def generate_html(records, stats):
       gap: 6px;
     }}
 
+    .filter-bar {{
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+    }}
+    .filter-btn {{
+      background: #1e293b;
+      color: #64748b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }}
+    .filter-btn.active {{
+      background: #3b82f6;
+      color: white;
+      border-color: #3b82f6;
+    }}
+    .filter-btn:hover:not(.active) {{
+      border-color: #475569;
+      color: #94a3b8;
+    }}
+
     .form-grid {{
       display: flex;
       flex-direction: column;
@@ -284,6 +310,11 @@ def generate_html(records, stats):
 
     <div class="card">
       <div class="card-title">📊 体重变化曲线</div>
+      <div class="filter-bar">
+        <button class="filter-btn" onclick="setFilter('1w')">1週間</button>
+        <button class="filter-btn active" onclick="setFilter('1m')">1ヶ月</button>
+        <button class="filter-btn" onclick="setFilter('all')">全期間</button>
+      </div>
       <div class="chart-wrapper">
         <canvas id="weightChart"></canvas>
       </div>
@@ -307,14 +338,55 @@ def generate_html(records, stats):
   <script>
     const chartData = {chart_data};
 
-    function initChart() {{
-      const ctx = document.getElementById('weightChart').getContext('2d');
+    // fullData stores ALL records for client-side filtering
+    const fullData = {{
+      labels: chartData.labels.slice(),
+      weights: chartData.weights.slice(),
+      ma7: chartData.ma7.slice(),
+      rawDates: chartData.rawDates.slice(),
+    }};
+    var currentFilter = '1m';
 
-      // Build datasets
+    function setFilter(range) {{
+      currentFilter = range;
+      document.querySelectorAll('.filter-btn').forEach(function(btn) {{
+        var isActive = btn.getAttribute('onclick').includes("'" + range + "'");
+        btn.classList.toggle('active', isActive);
+      }});
+      filterChart();
+    }}
+
+    function filterChart() {{
+      var n = fullData.weights.length;
+      var start;
+      if (currentFilter === '1w') start = Math.max(0, n - 7);
+      else if (currentFilter === '1m') start = Math.max(0, n - 30);
+      else start = 0;
+
+      var labels = fullData.labels.slice(start);
+      var weights = fullData.weights.slice(start);
+      var ma7 = fullData.ma7.slice(start);
+      var rawDates = fullData.rawDates.slice(start);
+
+      // Recompute min/max for filtered data
+      var maxVal = weights[0], minVal = weights[0];
+      var maxIdx = 0, minIdx = 0;
+      for (var i = 1; i < weights.length; i++) {{
+        if (weights[i] > maxVal) {{ maxVal = weights[i]; maxIdx = i; }}
+        if (weights[i] < minVal) {{ minVal = weights[i]; minIdx = i; }}
+      }}
+
+      if (window.weightChart) window.weightChart.destroy();
+      buildChart(labels, weights, ma7, rawDates, maxIdx, maxVal, minIdx, minVal);
+    }}
+
+    function buildChart(labels, weights, ma7, rawDates, maxIdx, maxVal, minIdx, minVal) {{
+      var ctx = document.getElementById('weightChart').getContext('2d');
+
       var datasets = [
         {{
           label: '体重 (kg)',
-          data: chartData.weights,
+          data: weights,
           borderColor: '#3b82f6',
           backgroundColor: 'rgba(59, 130, 246, 0.08)',
           borderWidth: 2.5,
@@ -325,11 +397,10 @@ def generate_html(records, stats):
         }}
       ];
 
-      // 7-day MA
-      if (chartData.ma7 && chartData.ma7.filter(function(v) {{ return v !== null; }}).length > 0) {{
+      if (ma7 && ma7.filter(function(v) {{ return v !== null; }}).length > 0) {{
         datasets.push({{
           label: '7日平均',
-          data: chartData.ma7,
+          data: ma7,
           borderColor: 'rgba(251, 146, 60, 0.7)',
           borderWidth: 2,
           borderDash: [6, 3],
@@ -339,8 +410,7 @@ def generate_html(records, stats):
         }});
       }}
 
-      // Target line
-      var targetLine = new Array(chartData.labels.length).fill(chartData.target);
+      var targetLine = new Array(labels.length).fill(chartData.target);
       datasets.push({{
         label: '目标 ' + chartData.target + 'kg',
         data: targetLine,
@@ -351,47 +421,44 @@ def generate_html(records, stats):
         fill: false,
       }});
 
-      // Custom plugin for min/max labels (no external CDN needed)
       var labelPlugin = {{
         id: 'minMaxLabels',
         afterDraw: function(chart) {{
-          var ctx = chart.ctx;
+          var ctx2 = chart.ctx;
           var meta = chart.getDatasetMeta(0);
           if (!meta || !meta.data || meta.data.length < 3) return;
-          var maxPt = meta.data[chartData.maxIdx];
-          var minPt = meta.data[chartData.minIdx];
+          var maxPt = meta.data[maxIdx];
+          var minPt = meta.data[minIdx];
           if (!maxPt || !minPt) return;
 
-          ctx.save();
-          ctx.textAlign = 'center';
+          ctx2.save();
+          ctx2.textAlign = 'center';
 
-          // Max label (red dot + value)
           var mx = maxPt.x, my = maxPt.y;
-          ctx.beginPath();
-          ctx.arc(mx, my, 4, 0, Math.PI * 2);
-          ctx.fillStyle = '#ef4444';
-          ctx.fill();
-          ctx.font = 'bold 10px -apple-system, sans-serif';
-          ctx.fillStyle = '#fca5a5';
-          ctx.fillText(chartData.maxVal + 'kg', mx, my - 12);
+          ctx2.beginPath();
+          ctx2.arc(mx, my, 4, 0, Math.PI * 2);
+          ctx2.fillStyle = '#ef4444';
+          ctx2.fill();
+          ctx2.font = 'bold 10px -apple-system, sans-serif';
+          ctx2.fillStyle = '#fca5a5';
+          ctx2.fillText(maxVal + 'kg', mx, my - 12);
 
-          // Min label (green dot + value)
           var nx = minPt.x, ny = minPt.y;
-          ctx.beginPath();
-          ctx.arc(nx, ny, 4, 0, Math.PI * 2);
-          ctx.fillStyle = '#22c55e';
-          ctx.fill();
-          ctx.font = 'bold 10px -apple-system, sans-serif';
-          ctx.fillStyle = '#86efac';
-          ctx.fillText(chartData.minVal + 'kg', nx, ny + 18);
+          ctx2.beginPath();
+          ctx2.arc(nx, ny, 4, 0, Math.PI * 2);
+          ctx2.fillStyle = '#22c55e';
+          ctx2.fill();
+          ctx2.font = 'bold 10px -apple-system, sans-serif';
+          ctx2.fillStyle = '#86efac';
+          ctx2.fillText(minVal + 'kg', nx, ny + 18);
 
-          ctx.restore();
+          ctx2.restore();
         }}
       }};
 
       window.weightChart = new Chart(ctx, {{
         type: 'line',
-        data: {{ labels: chartData.labels, datasets: datasets }},
+        data: {{ labels: labels, datasets: datasets }},
         options: {{
           responsive: true,
           maintainAspectRatio: true,
@@ -414,7 +481,7 @@ def generate_html(records, stats):
               callbacks: {{
                 title: function(items) {{
                   var i = items[0].dataIndex;
-                  return chartData.rawDates ? chartData.rawDates[i] : items[0].label;
+                  return rawDates ? rawDates[i] : items[0].label;
                 }},
                 label: function(context) {{
                   if (context.dataset.label.includes('目标')) return context.dataset.label;
@@ -432,7 +499,7 @@ def generate_html(records, stats):
                 maxRotation: 0,
                 maxTicksLimit: 12,
                 callback: function(val, idx) {{
-                  return chartData.labels[idx];
+                  return labels[idx];
                 }}
               }}
             }},
@@ -459,7 +526,9 @@ def generate_html(records, stats):
         document.getElementById('input-date').value = today;
         document.getElementById('input-date').max = today;
       }}
-      if (chartData.labels.length > 0) initChart();
+      if (chartData.labels.length > 0) {{
+        filterChart();
+      }}
     }});
 
 function showToast(msg, type) {{
@@ -476,7 +545,7 @@ function updateStats(weightVal) {{
   var daysEl = document.querySelector('.stat-card:nth-child(4) .value');
   var days = parseInt(daysEl.textContent) + 1;
   daysEl.textContent = days + '天';
-  var firstW = chartData.weights[0];
+  var firstW = fullData.weights[0];
   var lost = parseFloat((firstW - weightVal).toFixed(1));
   var lostEl = document.querySelector('.stat-card:nth-child(2) .value');
   lostEl.textContent = (lost > 0 ? '' : '') + lost + 'kg';
@@ -509,31 +578,30 @@ function addWeight() {{
       tr.innerHTML = '<td>' + date + '</td><td>' + w + '</td><td class="note">' + (note || '') + '</td>';
       tbody.insertBefore(tr, tbody.firstChild);
 
-      // Chart data
-      chartData.labels.push(label);
-      chartData.weights.push(w);
-      chartData.rawDates.push(date);
+      // Update fullData
+      fullData.labels.push(label);
+      fullData.weights.push(w);
+      fullData.rawDates.push(date);
 
       // 7-day MA
-      var len = chartData.weights.length;
+      var len = fullData.weights.length;
       if (len >= 7) {{
         var sum = 0;
-        for (var i = len - 7; i < len; i++) sum += chartData.weights[i];
-        chartData.ma7.push(parseFloat((sum / 7).toFixed(2)));
+        for (var i = len - 7; i < len; i++) sum += fullData.weights[i];
+        fullData.ma7.push(parseFloat((sum / 7).toFixed(2)));
       }} else {{
-        chartData.ma7.push(null);
+        fullData.ma7.push(null);
       }}
 
-      // Min/max
+      // Min/max (update chartData for global reference)
       if (w >= chartData.maxVal) {{ chartData.maxVal = w; chartData.maxIdx = len - 1; }}
       if (w <= chartData.minVal) {{ chartData.minVal = w; chartData.minIdx = len - 1; }}
 
       // Stats
       updateStats(w);
 
-      // Rebuild chart
-      if (window.weightChart) window.weightChart.destroy();
-      initChart();
+      // Rebuild chart with current filter
+      filterChart();
 
       showToast('✅ 记录成功！', 'success');
       document.getElementById('input-weight').value = '';
