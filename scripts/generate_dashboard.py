@@ -14,16 +14,30 @@ TARGET_WEIGHT = 50
 
 
 def read_weight_data():
+    """CSV は追記型なので、同日重複を「後勝ち」で畳み、日付の昇順で返す。"""
     records = []
-    with open(CSV_PATH, "r", encoding="utf-8") as f:
+    with open(CSV_PATH, "r", encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f)
         for row in reader:
+            date = (row.get("date") or "").strip()
+            raw_weight = (row.get("weight") or "").strip()
+            if not date or not raw_weight:
+                continue
+            try:
+                weight = float(raw_weight)
+            except ValueError:
+                continue
             records.append({
-                "date": row["date"].strip(),
-                "weight": float(row["weight"]),
-                "note": row.get("note", "").strip(),
+                "date": date,
+                "weight": weight,
+                "note": (row.get("note") or "").strip(),
             })
-    return records
+
+    by_date = {}
+    for r in records:
+        by_date[r["date"]] = r  # 同日は後勝ち（最後に追記された値が正）
+
+    return sorted(by_date.values(), key=lambda r: r["date"])
 
 
 def compute_stats(records):
@@ -82,10 +96,10 @@ def generate_html(records, stats):
             for r in reversed(records)
         )
 
+    remaining = round(stats["current_weight"] - TARGET_WEIGHT, 1) if stats else 0
     stats_cards = ""
     if stats:
         loss_class = "loss" if stats["lost"] > 0 else "gain" if stats["lost"] < 0 else "neutral"
-        remaining = round(stats["current_weight"] - TARGET_WEIGHT, 1)
         stats_cards = f"""
     <div class="stats-grid">
       <div class="stat-card">
@@ -101,8 +115,8 @@ def generate_html(records, stats):
         <div class="value">{remaining}kg</div>
       </div>
       <div class="stat-card">
-        <div class="label">已记录</div>
-        <div class="value">{stats['total_days']}天</div>
+        <div class="label">记录天数</div>
+        <div class="value">{stats['records_count']}天</div>
       </div>
     </div>"""
 
@@ -309,7 +323,7 @@ def generate_html(records, stats):
     </div>
 
     <div class="card">
-      <div class="card-title">📊 体重变化曲线</div>
+      <div class="card-title">📊 体重变化曲线<span style="margin-left:auto;font-weight:400;font-size:12px;color:#64748b;">目标 {TARGET_WEIGHT}kg ・ 还差 {remaining}kg</span></div>
       <div class="filter-bar">
         <button class="filter-btn" onclick="setFilter('1w')">1週間</button>
         <button class="filter-btn active" onclick="setFilter('1m')">1ヶ月</button>
@@ -382,6 +396,9 @@ def generate_html(records, stats):
 
     function buildChart(labels, weights, ma7, rawDates, maxIdx, maxVal, minIdx, minVal) {{
       var ctx = document.getElementById('weightChart').getContext('2d');
+      // データ範囲に合わせる（±1kg の余白）。固定 50〜65 だと変化が潰れて平らに見える。
+      var yMin = Math.floor((minVal - 1) * 10) / 10;
+      var yMax = Math.ceil((maxVal + 1) * 10) / 10;
 
       var datasets = [
         {{
@@ -409,17 +426,6 @@ def generate_html(records, stats):
           fill: false,
         }});
       }}
-
-      var targetLine = new Array(labels.length).fill(chartData.target);
-      datasets.push({{
-        label: '目标 ' + chartData.target + 'kg',
-        data: targetLine,
-        borderColor: 'rgba(34, 197, 94, 0.3)',
-        borderWidth: 1,
-        borderDash: [4, 4],
-        pointRadius: 0,
-        fill: false,
-      }});
 
       var labelPlugin = {{
         id: 'minMaxLabels',
@@ -501,8 +507,8 @@ def generate_html(records, stats):
               }}
             }},
             y: {{
-              min: 50,
-              max: 65,
+              min: yMin,
+              max: yMax,
               grid: {{ color: 'rgba(51, 65, 85, 0.4)' }},
               ticks: {{
                 color: '#64748b',

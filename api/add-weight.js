@@ -37,10 +37,26 @@ export default async function handler(req, res) {
     const currentContent = Buffer.from(fileData.content, 'base64').toString('utf-8');
     const sha = fileData.sha;
 
-    // 2. 追加新行
-    const noteStr = note ? `,${note}` : ',';
-    const newLine = `${date},${weight}${noteStr}\n`;
-    const newContent = currentContent + newLine;
+    // 2. 同日は上書き（upsert）。既存の重複行もここで畳む。
+    const safeNote = String(note || '').replace(/[\r\n,]/g, ' ').trim();
+    const newRow = safeNote ? `${date},${weight},${safeNote}` : `${date},${weight},`;
+
+    const lines = currentContent.split('\n');
+    const header = (lines[0] || 'date,weight,note').replace(/\r$/, '');
+    const byDate = new Map();
+    for (const line of lines.slice(1)) {
+      const clean = line.replace(/\r$/, '').trim();
+      if (!clean) continue;
+      const d = clean.split(',')[0].trim();
+      if (!d) continue;
+      byDate.set(d, clean);   // 同日は後勝ち
+    }
+    byDate.set(date, newRow);
+
+    const sorted = [...byDate.values()].sort((a, b) =>
+      a.split(',')[0].trim().localeCompare(b.split(',')[0].trim())
+    );
+    const newContent = [header, ...sorted].join('\n') + '\n';
 
     // 3. 推送到 GitHub
     const putRes = await fetch(API, {
