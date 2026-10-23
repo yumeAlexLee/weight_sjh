@@ -7,6 +7,10 @@ on:
       - 'data/weight.csv'
   workflow_dispatch:
 
+concurrency:
+  group: update-weight-dashboard
+  cancel-in-progress: false
+
 jobs:
   generate-dashboard:
     runs-on: ubuntu-latest
@@ -33,6 +37,7 @@ jobs:
           git config user.email "yumealexlee@gmail.com"
           git add docs/index.html docs/index-gitee.html
           git diff --staged --quiet || git commit -m "auto: update weight dashboard"
+          git pull --rebase origin main
           git push
 
       - name: Sync to Gitee

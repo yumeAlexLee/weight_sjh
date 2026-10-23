@@ -372,10 +372,20 @@ def generate_html(records, stats):
 
     function filterChart() {{
       var n = fullData.weights.length;
-      var start;
-      if (currentFilter === '1w') start = Math.max(0, n - 7);
-      else if (currentFilter === '1m') start = Math.max(0, n - 30);
-      else start = 0;
+      if (n === 0) return;
+      var start = 0;
+      if (currentFilter === '1w' || currentFilter === '1m') {{
+        // 期間は「記録件数」ではなく日付で切る。
+        // 記録が飛び飛びだと件数指定では数ヶ月前まで入ってしまう（1ヶ月で 06-09 が出ていた）。
+        // アンカーは最後の記録日（今日基準だと、しばらく記録が無いとき窓が空になる）。
+        var days = (currentFilter === '1w') ? 7 : 30;
+        var lastDate = new Date(fullData.rawDates[n - 1] + 'T00:00:00');
+        var cutoff = new Date(lastDate.getTime() - (days - 1) * 86400000);
+        for (var i = n - 1; i >= 0; i--) {{
+          if (new Date(fullData.rawDates[i] + 'T00:00:00') < cutoff) break;
+          start = i;
+        }}
+      }}
 
       var labels = fullData.labels.slice(start);
       var weights = fullData.weights.slice(start);
