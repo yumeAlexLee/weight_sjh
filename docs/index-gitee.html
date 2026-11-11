@@ -180,11 +180,11 @@
     <div class="stats-grid">
       <div class="stat-card">
         <div class="label">当前体重</div>
-        <div class="value">54.4kg</div>
+        <div class="value">54.35kg</div>
       </div>
       <div class="stat-card">
         <div class="label">已减</div>
-        <div class="value loss">+5.1kg</div>
+        <div class="value loss">+5.2kg</div>
       </div>
       <div class="stat-card">
         <div class="label">剩余</div>
@@ -192,7 +192,7 @@
       </div>
       <div class="stat-card">
         <div class="label">记录天数</div>
-        <div class="value">127天</div>
+        <div class="value">128天</div>
       </div>
     </div>
 
@@ -214,23 +214,343 @@
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-title">📋 记录明细</div>
-      <div class="table-wrap">
+    <style>
+    /* Food section */
+    #food-section h2 { font-size: 16px; font-weight: 700; color: #f1f5f9; margin-bottom: 12px; }
+    .food-input-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .food-input-row select,
+    .food-input-row input[type="text"] {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: #e2e8f0;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .food-input-row input[type="text"]:focus,
+    .food-input-row select:focus { border-color: #3b82f6; }
+    .food-input-row input[type="text"]::placeholder { color: #475569; }
+    .food-summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .food-stat { font-size: 13px; color: #94a3b8; }
+    .food-stat strong { color: #e2e8f0; font-size: 16px; }
+    .food-bar-wrap {
+      grid-column: 1 / -1;
+      background: #0f172a;
+      border-radius: 6px;
+      height: 8px;
+      overflow: hidden;
+    }
+    #food-bar-kcal {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #22c55e);
+      border-radius: 6px;
+      transition: width 0.4s;
+    }
+    #food-comment { font-size: 13px; color: #94a3b8; min-height: 20px; }
+    #food-table td { font-size: 13px; }
+    @media (min-width: 480px) {
+      .food-input-row { flex-direction: row; }
+      .food-input-row select { flex: 0 0 90px; }
+      .food-input-row input[type="text"] { flex: 1; }
+    }
+    #food-bulk {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: #e2e8f0;
+      font-size: 14px;
+      resize: vertical;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+    #food-bulk:focus { border-color: #3b82f6; }
+    #food-bulk::placeholder { color: #475569; }
+    #food-bulk-actions { display: flex; gap: 8px; margin-top: 8px; }
+    #food-bulk-actions button { flex: 1; }
+    #food-preview-wrap { margin-top: 12px; display: none; }
+    #food-preview-wrap table { font-size: 12px; }
+    #food-preview-wrap .unknown-row td { color: #f87171; }
+</style>
+
+<section id="food-section">
+  <h2>🍽 今日の食事</h2>
+
+  <div class="card">
+    <div class="food-input-row">
+      <select id="food-meal">
+        <option value="朝">朝</option>
+        <option value="昼">昼</option>
+        <option value="夜" selected>夜</option>
+        <option value="間食">間食</option>
+      </select>
+      <input type="text" id="food-input" placeholder="例: 鶏むね150g ご飯200g ブロッコリー">
+      <button class="btn" id="food-submit" onclick="submitFood()" style="width:auto;padding:12px 20px;font-size:14px;">記録</button>
+    </div>
+  </div>
+
+  <div class="card food-summary">
+    <div class="food-summary-grid">
+      <div class="food-stat">kcal <strong id="food-kcal-val">0</strong> / <span id="food-kcal-target">1700</span></div>
+      <div class="food-stat">蛋白 <strong id="food-protein-val">0</strong>g / <span id="food-protein-target">100</span>g</div>
+      <div class="food-bar-wrap">
+        <span id="food-bar-kcal" style="width:0%"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="food-comment"></div>
+
+  <div class="card" style="padding:0;overflow:hidden;">
+    <table id="food-table">
+      <thead><tr><th>時間帯</th><th>内容</th><th>kcal</th><th>蛋白(g)</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div style="font-size:14px;font-weight:600;color:#cbd5e1;margin-bottom:10px;">📋 まとめ貼り付け</div>
+    <textarea id="food-bulk" rows="8" placeholder="📅11/8:空腹54.5 🩸&#10;椰子水350ml、薯条中份、炸鸡汉堡半个&#10;水200ml、可乐500ml&#10;&#10;📅11/9:空腹54.5&#10;200ml水、两个鸡蛋白、200ml苹果汁&#10;鸡肉50g、牛肉20g、水500ml"></textarea>
+    <div id="food-bulk-actions">
+      <button class="btn" id="food-bulk-preview" onclick="bulkPreview()" style="padding:12px;font-size:14px;">プレビュー</button>
+      <button class="btn" id="food-bulk-save" onclick="bulkSave()" style="padding:12px;font-size:14px;display:none;">この内容で保存</button>
+    </div>
+    <div id="food-preview-wrap">
+      <table id="food-preview-table">
+        <thead><tr><th>日付</th><th>内容</th><th>kcal</th><th>蛋白(g)</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<script>
+    const FOOD_TARGET = { kcal: 1700, protein: 100 };
+
+    function renderFoodUI(today, comment, items) {
+      var kcal = today ? today.kcal : 0;
+      var protein = today ? today.protein : 0;
+      document.getElementById('food-kcal-val').textContent = Math.round(kcal);
+      document.getElementById('food-protein-val').textContent = protein.toFixed(1);
+      var pct = Math.min(100, Math.round((kcal / FOOD_TARGET.kcal) * 100));
+      document.getElementById('food-bar-kcal').style.width = pct + '%';
+      document.getElementById('food-comment').textContent = comment || '';
+      if (items) {
+        var tbody = document.querySelector('#food-table tbody');
+        tbody.innerHTML = '';
+        items.forEach(function(r) {
+          var tr = document.createElement('tr');
+          tr.innerHTML = '<td>' + r.meal + '</td><td>' + r.text + '</td><td>' + Math.round(r.kcal) + '</td><td>' + parseFloat(r.protein).toFixed(1) + '</td>';
+          tbody.appendChild(tr);
+        });
+      }
+    }
+
+    function submitFood() {
+      var meal = document.getElementById('food-meal').value;
+      var text = document.getElementById('food-input').value.trim();
+      var btn = document.getElementById('food-submit');
+      if (!text) return;
+      btn.disabled = true;
+      btn.textContent = '記録中…';
+      var today = new Date().toLocaleDateString('sv-SE');
+      fetch('/api/food-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: today, meal: meal, text: text }),
+      })
+      .then(function(r) {
+        if (!r.ok) throw new Error('API_UNAVAILABLE');
+        return r.json().catch(function() { throw new Error('API_UNAVAILABLE'); });
+      })
+      .then(function(data) {
+        if (data.success) {
+          document.getElementById('food-input').value = '';
+          renderFoodUI(data.today, data.comment, null);
+          // prepend row to table
+          var tbody = document.querySelector('#food-table tbody');
+          var tr = document.createElement('tr');
+          tr.innerHTML = '<td>' + meal + '</td><td>' + text + '</td><td>' + Math.round(data.entry.kcal) + '</td><td>' + parseFloat(data.entry.protein).toFixed(1) + '</td>';
+          tbody.insertBefore(tr, tbody.firstChild);
+        } else {
+          document.getElementById('food-comment').textContent = '記録できませんでした: ' + (data.error || 'エラー');
+        }
+      })
+      .catch(function(err) {
+        document.getElementById('food-comment').textContent = err.message === 'API_UNAVAILABLE'
+          ? '記録できませんでした（Vercel 版でのみ動作します）'
+          : '記録できませんでした（' + err.message + '）';
+      })
+      .finally(function() {
+        btn.disabled = false;
+        btn.textContent = '記録';
+      });
+    }
+
+    function loadFood() {
+      var today = new Date().toLocaleDateString('sv-SE');
+      fetch('/api/food-log?date=' + today)
+      .then(function(r) {
+        if (!r.ok) throw new Error(r.status.toString());
+        return r.json();
+      })
+      .then(function(data) {
+        if (data.success) renderFoodUI(data.today, data.comment, data.items);
+      })
+      .catch(function() {
+        document.getElementById('food-comment').textContent = 'この環境では食事記録は使えません（Vercel 版でのみ動作します）';
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', loadFood);
+
+    // ---- まとめ貼り付け ----
+
+    function parseBulkText(raw) {
+      var year = new Date().getFullYear();
+      var currentMonth = new Date().getMonth() + 1;
+      var entries = [];
+      var currentDate = null;
+      var lines = raw.split('\n');
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        if (!line || line.startsWith('#')) continue;
+        // date block: contains 📅 or 空腹
+        if (/📅/.test(line) || /空腹/.test(line)) {
+          var dm = line.match(/(\d{1,2})\/(\d{1,2})/);
+          if (dm) {
+            var m = parseInt(dm[1], 10);
+            var d = parseInt(dm[2], 10);
+            var y = year;
+            if (m > currentMonth) y = year - 1;
+            currentDate = y + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+          }
+          continue;
+        }
+        if (!currentDate) continue;
+        // split by delimiters
+        var parts = line.split(/[、，,；;]+/);
+        for (var j = 0; j < parts.length; j++) {
+          var p = parts[j].trim();
+          if (p) entries.push({ date: currentDate, meal: '一括', text: p });
+        }
+      }
+      return entries;
+    }
+
+    var _bulkPreviewData = null;
+
+    function bulkPreview() {
+      var raw = document.getElementById('food-bulk').value;
+      var entries = parseBulkText(raw);
+      if (!entries.length) {
+        document.getElementById('food-comment').textContent = '日付ブロック（📅11/8:）が見つかりませんでした';
+        return;
+      }
+      var btn = document.getElementById('food-bulk-preview');
+      btn.disabled = true; btn.textContent = '解析中…';
+      fetch('/api/food-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entries: entries, dryRun: true }),
+      })
+      .then(function(r) {
+        if (!r.ok) return r.json().then(function(d) { throw new Error(d.error || 'API_UNAVAILABLE'); });
+        return r.json().catch(function() { throw new Error('API_UNAVAILABLE'); });
+      })
+      .then(function(data) {
+        if (!data.success) throw new Error(data.error || 'エラー');
+        _bulkPreviewData = data.preview;
+        var tbody = document.querySelector('#food-preview-table tbody');
+        tbody.innerHTML = '';
+        (data.preview || []).forEach(function(p) {
+          var tr = document.createElement('tr');
+          if (p.unknown) tr.className = 'unknown-row';
+          tr.innerHTML = '<td>' + p.date + '</td><td>' + p.text + '</td><td>' + (p.unknown ? '-' : Math.round(p.kcal)) + '</td><td>' + (p.unknown ? '-' : parseFloat(p.protein).toFixed(1)) + '</td><td>' + (p.unknown ? '⚠️未認識' : '') + '</td>';
+          tbody.appendChild(tr);
+        });
+        document.getElementById('food-preview-wrap').style.display = 'block';
+        document.getElementById('food-bulk-save').style.display = 'block';
+      })
+      .catch(function(err) {
+        document.getElementById('food-comment').textContent = err.message === 'API_UNAVAILABLE'
+          ? 'プレビューできませんでした（Vercel 版でのみ動作します）'
+          : 'プレビューできませんでした（' + err.message + '）';
+      })
+      .finally(function() { btn.disabled = false; btn.textContent = 'プレビュー'; });
+    }
+
+    function bulkSave() {
+      if (!_bulkPreviewData) return;
+      var raw = document.getElementById('food-bulk').value;
+      var entries = parseBulkText(raw);
+      if (!entries.length) return;
+      var btn = document.getElementById('food-bulk-save');
+      btn.disabled = true; btn.textContent = '保存中…';
+      fetch('/api/food-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entries: entries, dryRun: false }),
+      })
+      .then(function(r) {
+        if (!r.ok) return r.json().then(function(d) { throw new Error(d.error || 'API_UNAVAILABLE'); });
+        return r.json().catch(function() { throw new Error('API_UNAVAILABLE'); });
+      })
+      .then(function(data) {
+        if (!data.success) throw new Error(data.error || 'エラー');
+        document.getElementById('food-bulk').value = '';
+        document.getElementById('food-preview-wrap').style.display = 'none';
+        btn.style.display = 'none';
+        _bulkPreviewData = null;
+        // reload today's summary
+        loadFood();
+      })
+      .catch(function(err) {
+        document.getElementById('food-comment').textContent = err.message === 'API_UNAVAILABLE'
+          ? '保存できませんでした（Vercel 版でのみ動作します）'
+          : '保存できませんでした（' + err.message + '）';
+      })
+      .finally(function() { btn.disabled = false; btn.textContent = 'この内容で保存'; });
+    }
+</script>
+
+    
+
+    <details id="weight-detail" style="margin-top:16px;background:#1e293b;border-radius:14px;border:1px solid #334155;margin-bottom:16px;">
+      <summary style="cursor:pointer;padding:14px 18px;font-size:15px;font-weight:600;color:#cbd5e1;list-style:none;display:flex;align-items:center;gap:6px;">
+        📋 记录明细（<span id="weight-detail-count">128</span>件）
+      </summary>
+      <div class="table-wrap" style="padding:0 4px 4px;">
         <table>
           <thead>
             <tr><th>日期</th><th>体重</th><th>备注</th></tr>
           </thead>
-          <tbody><tr><td>2026-11-11</td><td>54.4</td><td class='note'></td></tr><tr><td>2026-11-10</td><td>54.7</td><td class='note'></td></tr><tr><td>2026-11-09</td><td>54.5</td><td class='note'></td></tr><tr><td>2026-11-08</td><td>54.5</td><td class='note'></td></tr><tr><td>2026-11-07</td><td>55.5</td><td class='note'></td></tr><tr><td>2026-11-06</td><td>55.5</td><td class='note'></td></tr><tr><td>2026-11-05</td><td>55.5</td><td class='note'></td></tr><tr><td>2026-11-04</td><td>55.5</td><td class='note'></td></tr><tr><td>2026-11-03</td><td>55.5</td><td class='note'></td></tr><tr><td>2026-11-02</td><td>55.67</td><td class='note'></td></tr><tr><td>2026-11-01</td><td>55.6</td><td class='note'></td></tr><tr><td>2026-10-29</td><td>56.2</td><td class='note'></td></tr><tr><td>2026-10-28</td><td>56.2</td><td class='note'></td></tr><tr><td>2026-10-27</td><td>55.9</td><td class='note'></td></tr><tr><td>2026-10-26</td><td>55.85</td><td class='note'></td></tr><tr><td>2026-10-25</td><td>56.1</td><td class='note'></td></tr><tr><td>2026-10-24</td><td>56.65</td><td class='note'></td></tr><tr><td>2026-10-23</td><td>56.9</td><td class='note'></td></tr><tr><td>2026-10-22</td><td>56.9</td><td class='note'></td></tr><tr><td>2026-10-21</td><td>56.9</td><td class='note'></td></tr><tr><td>2026-10-20</td><td>57.0</td><td class='note'></td></tr><tr><td>2026-10-18</td><td>58.2</td><td class='note'></td></tr><tr><td>2026-10-17</td><td>58.6</td><td class='note'></td></tr><tr><td>2026-10-15</td><td>58.6</td><td class='note'></td></tr><tr><td>2026-10-11</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-10-09</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-10-06</td><td>59.3</td><td class='note'></td></tr><tr><td>2026-10-05</td><td>58.9</td><td class='note'></td></tr><tr><td>2026-10-04</td><td>58.8</td><td class='note'></td></tr><tr><td>2026-10-02</td><td>58.65</td><td class='note'></td></tr><tr><td>2026-08-26</td><td>59.55</td><td class='note'></td></tr><tr><td>2026-08-25</td><td>59.55</td><td class='note'></td></tr><tr><td>2026-08-17</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-08-11</td><td>59.3</td><td class='note'></td></tr><tr><td>2026-08-10</td><td>59.3</td><td class='note'></td></tr><tr><td>2026-07-12</td><td>59.85</td><td class='note'></td></tr><tr><td>2026-07-03</td><td>59.1</td><td class='note'></td></tr><tr><td>2026-07-02</td><td>58.85</td><td class='note'></td></tr><tr><td>2026-06-30</td><td>58.7</td><td class='note'></td></tr><tr><td>2026-06-29</td><td>58.6</td><td class='note'></td></tr><tr><td>2026-06-27</td><td>58.95</td><td class='note'></td></tr><tr><td>2026-06-23</td><td>59.65</td><td class='note'></td></tr><tr><td>2026-06-20</td><td>59.05</td><td class='note'></td></tr><tr><td>2026-06-19</td><td>58.75</td><td class='note'></td></tr><tr><td>2026-06-18</td><td>59.1</td><td class='note'></td></tr><tr><td>2026-06-10</td><td>58.6</td><td class='note'></td></tr><tr><td>2026-06-09</td><td>58.0</td><td class='note'></td></tr><tr><td>2026-06-08</td><td>58.2</td><td class='note'></td></tr><tr><td>2026-06-07</td><td>58.3</td><td class='note'></td></tr><tr><td>2026-06-06</td><td>58.6</td><td class='note'></td></tr><tr><td>2026-06-05</td><td>58.8</td><td class='note'></td></tr><tr><td>2026-06-04</td><td>58.35</td><td class='note'></td></tr><tr><td>2026-06-03</td><td>58.8</td><td class='note'></td></tr><tr><td>2026-06-02</td><td>58.75</td><td class='note'></td></tr><tr><td>2026-06-01</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-05-31</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-05-30</td><td>59.25</td><td class='note'></td></tr><tr><td>2026-05-29</td><td>59.55</td><td class='note'></td></tr><tr><td>2026-05-28</td><td>59.7</td><td class='note'></td></tr><tr><td>2026-05-27</td><td>59.6</td><td class='note'></td></tr><tr><td>2026-05-26</td><td>59.9</td><td class='note'></td></tr><tr><td>2026-05-25</td><td>59.25</td><td class='note'></td></tr><tr><td>2026-05-24</td><td>60.0</td><td class='note'></td></tr><tr><td>2026-05-23</td><td>59.95</td><td class='note'></td></tr><tr><td>2026-05-22</td><td>59.6</td><td class='note'></td></tr><tr><td>2026-05-21</td><td>60.25</td><td class='note'></td></tr><tr><td>2026-05-20</td><td>60.0</td><td class='note'></td></tr><tr><td>2026-05-19</td><td>60.45</td><td class='note'></td></tr><tr><td>2026-05-18</td><td>59.8</td><td class='note'></td></tr><tr><td>2026-05-17</td><td>59.8</td><td class='note'></td></tr><tr><td>2026-05-16</td><td>60.25</td><td class='note'></td></tr><tr><td>2026-05-15</td><td>60.1</td><td class='note'></td></tr><tr><td>2026-05-14</td><td>60.2</td><td class='note'></td></tr><tr><td>2026-05-13</td><td>59.55</td><td class='note'></td></tr><tr><td>2026-05-12</td><td>59.8</td><td class='note'></td></tr><tr><td>2026-05-11</td><td>59.65</td><td class='note'></td></tr><tr><td>2026-05-10</td><td>59.75</td><td class='note'>早饭前</td></tr><tr><td>2026-05-09</td><td>60.0</td><td class='note'></td></tr><tr><td>2026-05-08</td><td>60.4</td><td class='note'></td></tr><tr><td>2026-04-28</td><td>59.7</td><td class='note'></td></tr><tr><td>2026-04-27</td><td>59.9</td><td class='note'></td></tr><tr><td>2026-04-26</td><td>59.4</td><td class='note'></td></tr><tr><td>2026-04-25</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-04-24</td><td>59.4</td><td class='note'></td></tr><tr><td>2026-04-23</td><td>59.9</td><td class='note'></td></tr><tr><td>2026-04-22</td><td>59.85</td><td class='note'></td></tr><tr><td>2026-04-21</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-04-20</td><td>58.9</td><td class='note'></td></tr><tr><td>2026-04-19</td><td>59.1</td><td class='note'></td></tr><tr><td>2026-04-18</td><td>58.75</td><td class='note'></td></tr><tr><td>2026-04-17</td><td>59.4</td><td class='note'></td></tr><tr><td>2026-04-16</td><td>58.85</td><td class='note'></td></tr><tr><td>2026-04-15</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-04-14</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-04-13</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-04-12</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-04-11</td><td>58.9</td><td class='note'></td></tr><tr><td>2026-04-10</td><td>59.1</td><td class='note'>59.11 (4.8-4.14)</td></tr><tr><td>2026-04-09</td><td>59.4</td><td class='note'></td></tr><tr><td>2026-04-08</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-04-07</td><td>59.7</td><td class='note'></td></tr><tr><td>2026-04-06</td><td>59.1</td><td class='note'></td></tr><tr><td>2026-04-05</td><td>59.7</td><td class='note'></td></tr><tr><td>2026-04-04</td><td>59.6</td><td class='note'></td></tr><tr><td>2026-04-03</td><td>58.9</td><td class='note'>59.2 (4.1-4.7)</td></tr><tr><td>2026-04-02</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-04-01</td><td>58.8</td><td class='note'></td></tr><tr><td>2026-03-30</td><td>58.9</td><td class='note'></td></tr><tr><td>2026-03-29</td><td>58.75</td><td class='note'></td></tr><tr><td>2026-03-28</td><td>58.75</td><td class='note'>58.8 (3.26-3.31)</td></tr><tr><td>2026-03-27</td><td>58.25</td><td class='note'></td></tr><tr><td>2026-03-26</td><td>59.4</td><td class='note'></td></tr><tr><td>2026-03-25</td><td>58.7</td><td class='note'></td></tr><tr><td>2026-03-24</td><td>59.25</td><td class='note'></td></tr><tr><td>2026-03-23</td><td>58.9</td><td class='note'>58.82 (3.21-3.25)</td></tr><tr><td>2026-03-22</td><td>58.4</td><td class='note'></td></tr><tr><td>2026-03-21</td><td>58.85</td><td class='note'></td></tr><tr><td>2026-03-20</td><td>59.15</td><td class='note'></td></tr><tr><td>2026-03-19</td><td>59.3</td><td class='note'></td></tr><tr><td>2026-03-18</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-03-17</td><td>59.2</td><td class='note'>59.07 (3.15-3.20)</td></tr><tr><td>2026-03-16</td><td>58.7</td><td class='note'></td></tr><tr><td>2026-03-15</td><td>57.95</td><td class='note'></td></tr><tr><td>2026-03-14</td><td>59.5</td><td class='note'></td></tr><tr><td>2026-03-13</td><td>59.2</td><td class='note'>59.19 (3.11-3.14)</td></tr><tr><td>2026-03-12</td><td>59.15</td><td class='note'></td></tr><tr><td>2026-03-11</td><td>59.55</td><td class='note'></td></tr></tbody>
+          <tbody><tr><td>2026-11-12</td><td>54.35</td><td class='note'></td></tr><tr><td>2026-11-11</td><td>54.4</td><td class='note'></td></tr><tr><td>2026-11-10</td><td>54.7</td><td class='note'></td></tr><tr><td>2026-11-09</td><td>54.5</td><td class='note'></td></tr><tr><td>2026-11-08</td><td>54.5</td><td class='note'></td></tr><tr><td>2026-11-07</td><td>55.5</td><td class='note'></td></tr><tr><td>2026-11-06</td><td>55.5</td><td class='note'></td></tr><tr><td>2026-11-05</td><td>55.5</td><td class='note'></td></tr><tr><td>2026-11-04</td><td>55.5</td><td class='note'></td></tr><tr><td>2026-11-03</td><td>55.5</td><td class='note'></td></tr><tr><td>2026-11-02</td><td>55.67</td><td class='note'></td></tr><tr><td>2026-11-01</td><td>55.6</td><td class='note'></td></tr><tr><td>2026-10-29</td><td>56.2</td><td class='note'></td></tr><tr><td>2026-10-28</td><td>56.2</td><td class='note'></td></tr><tr><td>2026-10-27</td><td>55.9</td><td class='note'></td></tr><tr><td>2026-10-26</td><td>55.85</td><td class='note'></td></tr><tr><td>2026-10-25</td><td>56.1</td><td class='note'></td></tr><tr><td>2026-10-24</td><td>56.65</td><td class='note'></td></tr><tr><td>2026-10-23</td><td>56.9</td><td class='note'></td></tr><tr><td>2026-10-22</td><td>56.9</td><td class='note'></td></tr><tr><td>2026-10-21</td><td>56.9</td><td class='note'></td></tr><tr><td>2026-10-20</td><td>57.0</td><td class='note'></td></tr><tr><td>2026-10-18</td><td>58.2</td><td class='note'></td></tr><tr><td>2026-10-17</td><td>58.6</td><td class='note'></td></tr><tr><td>2026-10-15</td><td>58.6</td><td class='note'></td></tr><tr><td>2026-10-11</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-10-09</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-10-06</td><td>59.3</td><td class='note'></td></tr><tr><td>2026-10-05</td><td>58.9</td><td class='note'></td></tr><tr><td>2026-10-04</td><td>58.8</td><td class='note'></td></tr><tr><td>2026-10-02</td><td>58.65</td><td class='note'></td></tr><tr><td>2026-08-26</td><td>59.55</td><td class='note'></td></tr><tr><td>2026-08-25</td><td>59.55</td><td class='note'></td></tr><tr><td>2026-08-17</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-08-11</td><td>59.3</td><td class='note'></td></tr><tr><td>2026-08-10</td><td>59.3</td><td class='note'></td></tr><tr><td>2026-07-12</td><td>59.85</td><td class='note'></td></tr><tr><td>2026-07-03</td><td>59.1</td><td class='note'></td></tr><tr><td>2026-07-02</td><td>58.85</td><td class='note'></td></tr><tr><td>2026-06-30</td><td>58.7</td><td class='note'></td></tr><tr><td>2026-06-29</td><td>58.6</td><td class='note'></td></tr><tr><td>2026-06-27</td><td>58.95</td><td class='note'></td></tr><tr><td>2026-06-23</td><td>59.65</td><td class='note'></td></tr><tr><td>2026-06-20</td><td>59.05</td><td class='note'></td></tr><tr><td>2026-06-19</td><td>58.75</td><td class='note'></td></tr><tr><td>2026-06-18</td><td>59.1</td><td class='note'></td></tr><tr><td>2026-06-10</td><td>58.6</td><td class='note'></td></tr><tr><td>2026-06-09</td><td>58.0</td><td class='note'></td></tr><tr><td>2026-06-08</td><td>58.2</td><td class='note'></td></tr><tr><td>2026-06-07</td><td>58.3</td><td class='note'></td></tr><tr><td>2026-06-06</td><td>58.6</td><td class='note'></td></tr><tr><td>2026-06-05</td><td>58.8</td><td class='note'></td></tr><tr><td>2026-06-04</td><td>58.35</td><td class='note'></td></tr><tr><td>2026-06-03</td><td>58.8</td><td class='note'></td></tr><tr><td>2026-06-02</td><td>58.75</td><td class='note'></td></tr><tr><td>2026-06-01</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-05-31</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-05-30</td><td>59.25</td><td class='note'></td></tr><tr><td>2026-05-29</td><td>59.55</td><td class='note'></td></tr><tr><td>2026-05-28</td><td>59.7</td><td class='note'></td></tr><tr><td>2026-05-27</td><td>59.6</td><td class='note'></td></tr><tr><td>2026-05-26</td><td>59.9</td><td class='note'></td></tr><tr><td>2026-05-25</td><td>59.25</td><td class='note'></td></tr><tr><td>2026-05-24</td><td>60.0</td><td class='note'></td></tr><tr><td>2026-05-23</td><td>59.95</td><td class='note'></td></tr><tr><td>2026-05-22</td><td>59.6</td><td class='note'></td></tr><tr><td>2026-05-21</td><td>60.25</td><td class='note'></td></tr><tr><td>2026-05-20</td><td>60.0</td><td class='note'></td></tr><tr><td>2026-05-19</td><td>60.45</td><td class='note'></td></tr><tr><td>2026-05-18</td><td>59.8</td><td class='note'></td></tr><tr><td>2026-05-17</td><td>59.8</td><td class='note'></td></tr><tr><td>2026-05-16</td><td>60.25</td><td class='note'></td></tr><tr><td>2026-05-15</td><td>60.1</td><td class='note'></td></tr><tr><td>2026-05-14</td><td>60.2</td><td class='note'></td></tr><tr><td>2026-05-13</td><td>59.55</td><td class='note'></td></tr><tr><td>2026-05-12</td><td>59.8</td><td class='note'></td></tr><tr><td>2026-05-11</td><td>59.65</td><td class='note'></td></tr><tr><td>2026-05-10</td><td>59.75</td><td class='note'>早饭前</td></tr><tr><td>2026-05-09</td><td>60.0</td><td class='note'></td></tr><tr><td>2026-05-08</td><td>60.4</td><td class='note'></td></tr><tr><td>2026-04-28</td><td>59.7</td><td class='note'></td></tr><tr><td>2026-04-27</td><td>59.9</td><td class='note'></td></tr><tr><td>2026-04-26</td><td>59.4</td><td class='note'></td></tr><tr><td>2026-04-25</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-04-24</td><td>59.4</td><td class='note'></td></tr><tr><td>2026-04-23</td><td>59.9</td><td class='note'></td></tr><tr><td>2026-04-22</td><td>59.85</td><td class='note'></td></tr><tr><td>2026-04-21</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-04-20</td><td>58.9</td><td class='note'></td></tr><tr><td>2026-04-19</td><td>59.1</td><td class='note'></td></tr><tr><td>2026-04-18</td><td>58.75</td><td class='note'></td></tr><tr><td>2026-04-17</td><td>59.4</td><td class='note'></td></tr><tr><td>2026-04-16</td><td>58.85</td><td class='note'></td></tr><tr><td>2026-04-15</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-04-14</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-04-13</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-04-12</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-04-11</td><td>58.9</td><td class='note'></td></tr><tr><td>2026-04-10</td><td>59.1</td><td class='note'>59.11 (4.8-4.14)</td></tr><tr><td>2026-04-09</td><td>59.4</td><td class='note'></td></tr><tr><td>2026-04-08</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-04-07</td><td>59.7</td><td class='note'></td></tr><tr><td>2026-04-06</td><td>59.1</td><td class='note'></td></tr><tr><td>2026-04-05</td><td>59.7</td><td class='note'></td></tr><tr><td>2026-04-04</td><td>59.6</td><td class='note'></td></tr><tr><td>2026-04-03</td><td>58.9</td><td class='note'>59.2 (4.1-4.7)</td></tr><tr><td>2026-04-02</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-04-01</td><td>58.8</td><td class='note'></td></tr><tr><td>2026-03-30</td><td>58.9</td><td class='note'></td></tr><tr><td>2026-03-29</td><td>58.75</td><td class='note'></td></tr><tr><td>2026-03-28</td><td>58.75</td><td class='note'>58.8 (3.26-3.31)</td></tr><tr><td>2026-03-27</td><td>58.25</td><td class='note'></td></tr><tr><td>2026-03-26</td><td>59.4</td><td class='note'></td></tr><tr><td>2026-03-25</td><td>58.7</td><td class='note'></td></tr><tr><td>2026-03-24</td><td>59.25</td><td class='note'></td></tr><tr><td>2026-03-23</td><td>58.9</td><td class='note'>58.82 (3.21-3.25)</td></tr><tr><td>2026-03-22</td><td>58.4</td><td class='note'></td></tr><tr><td>2026-03-21</td><td>58.85</td><td class='note'></td></tr><tr><td>2026-03-20</td><td>59.15</td><td class='note'></td></tr><tr><td>2026-03-19</td><td>59.3</td><td class='note'></td></tr><tr><td>2026-03-18</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-03-17</td><td>59.2</td><td class='note'>59.07 (3.15-3.20)</td></tr><tr><td>2026-03-16</td><td>58.7</td><td class='note'></td></tr><tr><td>2026-03-15</td><td>57.95</td><td class='note'></td></tr><tr><td>2026-03-14</td><td>59.5</td><td class='note'></td></tr><tr><td>2026-03-13</td><td>59.2</td><td class='note'>59.19 (3.11-3.14)</td></tr><tr><td>2026-03-12</td><td>59.15</td><td class='note'></td></tr><tr><td>2026-03-11</td><td>59.55</td><td class='note'></td></tr></tbody>
         </table>
       </div>
-    </div>
+    </details>
 
     <div class="footer">在网站上记录体重即可 ✨</div>
   </div>
 
   <script>
-    const chartData = {"labels": ["03-11", "03-12", "03-13", "03-14", "03-15", "03-16", "03-17", "03-18", "03-19", "03-20", "03-21", "03-22", "03-23", "03-24", "03-25", "03-26", "03-27", "03-28", "03-29", "03-30", "04-01", "04-02", "04-03", "04-04", "04-05", "04-06", "04-07", "04-08", "04-09", "04-10", "04-11", "04-12", "04-13", "04-14", "04-15", "04-16", "04-17", "04-18", "04-19", "04-20", "04-21", "04-22", "04-23", "04-24", "04-25", "04-26", "04-27", "04-28", "05-08", "05-09", "05-10", "05-11", "05-12", "05-13", "05-14", "05-15", "05-16", "05-17", "05-18", "05-19", "05-20", "05-21", "05-22", "05-23", "05-24", "05-25", "05-26", "05-27", "05-28", "05-29", "05-30", "05-31", "06-01", "06-02", "06-03", "06-04", "06-05", "06-06", "06-07", "06-08", "06-09", "06-10", "06-18", "06-19", "06-20", "06-23", "06-27", "06-29", "06-30", "07-02", "07-03", "07-12", "08-10", "08-11", "08-17", "08-25", "08-26", "10-02", "10-04", "10-05", "10-06", "10-09", "10-11", "10-15", "10-17", "10-18", "10-20", "10-21", "10-22", "10-23", "10-24", "10-25", "10-26", "10-27", "10-28", "10-29", "11-01", "11-02", "11-03", "11-04", "11-05", "11-06", "11-07", "11-08", "11-09", "11-10", "11-11"], "weights": [59.55, 59.15, 59.2, 59.5, 57.95, 58.7, 59.2, 59.0, 59.3, 59.15, 58.85, 58.4, 58.9, 59.25, 58.7, 59.4, 58.25, 58.75, 58.75, 58.9, 58.8, 59.2, 58.9, 59.6, 59.7, 59.1, 59.7, 59.2, 59.4, 59.1, 58.9, 59.0, 59.0, 59.2, 59.0, 58.85, 59.4, 58.75, 59.1, 58.9, 59.2, 59.85, 59.9, 59.4, 59.2, 59.4, 59.9, 59.7, 60.4, 60.0, 59.75, 59.65, 59.8, 59.55, 60.2, 60.1, 60.25, 59.8, 59.8, 60.45, 60.0, 60.25, 59.6, 59.95, 60.0, 59.25, 59.9, 59.6, 59.7, 59.55, 59.25, 59.0, 59.2, 58.75, 58.8, 58.35, 58.8, 58.6, 58.3, 58.2, 58.0, 58.6, 59.1, 58.75, 59.05, 59.65, 58.95, 58.6, 58.7, 58.85, 59.1, 59.85, 59.3, 59.3, 59.2, 59.55, 59.55, 58.65, 58.8, 58.9, 59.3, 59.0, 59.0, 58.6, 58.6, 58.2, 57.0, 56.9, 56.9, 56.9, 56.65, 56.1, 55.85, 55.9, 56.2, 56.2, 55.6, 55.67, 55.5, 55.5, 55.5, 55.5, 55.5, 54.5, 54.5, 54.7, 54.4], "ma7": [null, null, null, null, null, null, 59.04, 58.96, 58.98, 58.97, 58.88, 58.94, 58.97, 58.98, 58.94, 58.95, 58.82, 58.81, 58.86, 58.86, 58.79, 58.86, 58.79, 58.99, 59.12, 59.17, 59.29, 59.34, 59.37, 59.4, 59.3, 59.2, 59.19, 59.11, 59.09, 59.01, 59.05, 59.03, 59.04, 59.03, 59.03, 59.15, 59.3, 59.3, 59.36, 59.41, 59.55, 59.62, 59.7, 59.71, 59.76, 59.83, 59.89, 59.84, 59.91, 59.86, 59.9, 59.91, 59.93, 60.02, 60.09, 60.09, 60.02, 59.98, 60.01, 59.93, 59.85, 59.79, 59.71, 59.71, 59.61, 59.46, 59.46, 59.29, 59.18, 58.99, 58.88, 58.79, 58.69, 58.54, 58.44, 58.41, 58.51, 58.51, 58.57, 58.76, 58.87, 58.96, 58.97, 58.94, 58.99, 59.1, 59.05, 59.1, 59.19, 59.31, 59.41, 59.34, 59.19, 59.14, 59.14, 59.11, 59.03, 58.89, 58.89, 58.8, 58.53, 58.19, 57.89, 57.59, 57.31, 56.95, 56.61, 56.46, 56.36, 56.26, 56.07, 55.93, 55.85, 55.8, 55.74, 55.64, 55.54, 55.38, 55.21, 55.1, 54.94], "target": 45, "maxIdx": 59, "maxVal": 60.45, "minIdx": 126, "minVal": 54.4, "rawDates": ["2026-03-11", "2026-03-12", "2026-03-13", "2026-03-14", "2026-03-15", "2026-03-16", "2026-03-17", "2026-03-18", "2026-03-19", "2026-03-20", "2026-03-21", "2026-03-22", "2026-03-23", "2026-03-24", "2026-03-25", "2026-03-26", "2026-03-27", "2026-03-28", "2026-03-29", "2026-03-30", "2026-04-01", "2026-04-02", "2026-04-03", "2026-04-04", "2026-04-05", "2026-04-06", "2026-04-07", "2026-04-08", "2026-04-09", "2026-04-10", "2026-04-11", "2026-04-12", "2026-04-13", "2026-04-14", "2026-04-15", "2026-04-16", "2026-04-17", "2026-04-18", "2026-04-19", "2026-04-20", "2026-04-21", "2026-04-22", "2026-04-23", "2026-04-24", "2026-04-25", "2026-04-26", "2026-04-27", "2026-04-28", "2026-05-08", "2026-05-09", "2026-05-10", "2026-05-11", "2026-05-12", "2026-05-13", "2026-05-14", "2026-05-15", "2026-05-16", "2026-05-17", "2026-05-18", "2026-05-19", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-23", "2026-05-24", "2026-05-25", "2026-05-26", "2026-05-27", "2026-05-28", "2026-05-29", "2026-05-30", "2026-05-31", "2026-06-01", "2026-06-02", "2026-06-03", "2026-06-04", "2026-06-05", "2026-06-06", "2026-06-07", "2026-06-08", "2026-06-09", "2026-06-10", "2026-06-18", "2026-06-19", "2026-06-20", "2026-06-23", "2026-06-27", "2026-06-29", "2026-06-30", "2026-07-02", "2026-07-03", "2026-07-12", "2026-08-10", "2026-08-11", "2026-08-17", "2026-08-25", "2026-08-26", "2026-10-02", "2026-10-04", "2026-10-05", "2026-10-06", "2026-10-09", "2026-10-11", "2026-10-15", "2026-10-17", "2026-10-18", "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23", "2026-10-24", "2026-10-25", "2026-10-26", "2026-10-27", "2026-10-28", "2026-10-29", "2026-11-01", "2026-11-02", "2026-11-03", "2026-11-04", "2026-11-05", "2026-11-06", "2026-11-07", "2026-11-08", "2026-11-09", "2026-11-10", "2026-11-11"]};
+    const chartData = {"labels": ["03-11", "03-12", "03-13", "03-14", "03-15", "03-16", "03-17", "03-18", "03-19", "03-20", "03-21", "03-22", "03-23", "03-24", "03-25", "03-26", "03-27", "03-28", "03-29", "03-30", "04-01", "04-02", "04-03", "04-04", "04-05", "04-06", "04-07", "04-08", "04-09", "04-10", "04-11", "04-12", "04-13", "04-14", "04-15", "04-16", "04-17", "04-18", "04-19", "04-20", "04-21", "04-22", "04-23", "04-24", "04-25", "04-26", "04-27", "04-28", "05-08", "05-09", "05-10", "05-11", "05-12", "05-13", "05-14", "05-15", "05-16", "05-17", "05-18", "05-19", "05-20", "05-21", "05-22", "05-23", "05-24", "05-25", "05-26", "05-27", "05-28", "05-29", "05-30", "05-31", "06-01", "06-02", "06-03", "06-04", "06-05", "06-06", "06-07", "06-08", "06-09", "06-10", "06-18", "06-19", "06-20", "06-23", "06-27", "06-29", "06-30", "07-02", "07-03", "07-12", "08-10", "08-11", "08-17", "08-25", "08-26", "10-02", "10-04", "10-05", "10-06", "10-09", "10-11", "10-15", "10-17", "10-18", "10-20", "10-21", "10-22", "10-23", "10-24", "10-25", "10-26", "10-27", "10-28", "10-29", "11-01", "11-02", "11-03", "11-04", "11-05", "11-06", "11-07", "11-08", "11-09", "11-10", "11-11", "11-12"], "weights": [59.55, 59.15, 59.2, 59.5, 57.95, 58.7, 59.2, 59.0, 59.3, 59.15, 58.85, 58.4, 58.9, 59.25, 58.7, 59.4, 58.25, 58.75, 58.75, 58.9, 58.8, 59.2, 58.9, 59.6, 59.7, 59.1, 59.7, 59.2, 59.4, 59.1, 58.9, 59.0, 59.0, 59.2, 59.0, 58.85, 59.4, 58.75, 59.1, 58.9, 59.2, 59.85, 59.9, 59.4, 59.2, 59.4, 59.9, 59.7, 60.4, 60.0, 59.75, 59.65, 59.8, 59.55, 60.2, 60.1, 60.25, 59.8, 59.8, 60.45, 60.0, 60.25, 59.6, 59.95, 60.0, 59.25, 59.9, 59.6, 59.7, 59.55, 59.25, 59.0, 59.2, 58.75, 58.8, 58.35, 58.8, 58.6, 58.3, 58.2, 58.0, 58.6, 59.1, 58.75, 59.05, 59.65, 58.95, 58.6, 58.7, 58.85, 59.1, 59.85, 59.3, 59.3, 59.2, 59.55, 59.55, 58.65, 58.8, 58.9, 59.3, 59.0, 59.0, 58.6, 58.6, 58.2, 57.0, 56.9, 56.9, 56.9, 56.65, 56.1, 55.85, 55.9, 56.2, 56.2, 55.6, 55.67, 55.5, 55.5, 55.5, 55.5, 55.5, 54.5, 54.5, 54.7, 54.4, 54.35], "ma7": [null, null, null, null, null, null, 59.04, 58.96, 58.98, 58.97, 58.88, 58.94, 58.97, 58.98, 58.94, 58.95, 58.82, 58.81, 58.86, 58.86, 58.79, 58.86, 58.79, 58.99, 59.12, 59.17, 59.29, 59.34, 59.37, 59.4, 59.3, 59.2, 59.19, 59.11, 59.09, 59.01, 59.05, 59.03, 59.04, 59.03, 59.03, 59.15, 59.3, 59.3, 59.36, 59.41, 59.55, 59.62, 59.7, 59.71, 59.76, 59.83, 59.89, 59.84, 59.91, 59.86, 59.9, 59.91, 59.93, 60.02, 60.09, 60.09, 60.02, 59.98, 60.01, 59.93, 59.85, 59.79, 59.71, 59.71, 59.61, 59.46, 59.46, 59.29, 59.18, 58.99, 58.88, 58.79, 58.69, 58.54, 58.44, 58.41, 58.51, 58.51, 58.57, 58.76, 58.87, 58.96, 58.97, 58.94, 58.99, 59.1, 59.05, 59.1, 59.19, 59.31, 59.41, 59.34, 59.19, 59.14, 59.14, 59.11, 59.03, 58.89, 58.89, 58.8, 58.53, 58.19, 57.89, 57.59, 57.31, 56.95, 56.61, 56.46, 56.36, 56.26, 56.07, 55.93, 55.85, 55.8, 55.74, 55.64, 55.54, 55.38, 55.21, 55.1, 54.94, 54.78], "target": 45, "maxIdx": 59, "maxVal": 60.45, "minIdx": 127, "minVal": 54.35, "rawDates": ["2026-03-11", "2026-03-12", "2026-03-13", "2026-03-14", "2026-03-15", "2026-03-16", "2026-03-17", "2026-03-18", "2026-03-19", "2026-03-20", "2026-03-21", "2026-03-22", "2026-03-23", "2026-03-24", "2026-03-25", "2026-03-26", "2026-03-27", "2026-03-28", "2026-03-29", "2026-03-30", "2026-04-01", "2026-04-02", "2026-04-03", "2026-04-04", "2026-04-05", "2026-04-06", "2026-04-07", "2026-04-08", "2026-04-09", "2026-04-10", "2026-04-11", "2026-04-12", "2026-04-13", "2026-04-14", "2026-04-15", "2026-04-16", "2026-04-17", "2026-04-18", "2026-04-19", "2026-04-20", "2026-04-21", "2026-04-22", "2026-04-23", "2026-04-24", "2026-04-25", "2026-04-26", "2026-04-27", "2026-04-28", "2026-05-08", "2026-05-09", "2026-05-10", "2026-05-11", "2026-05-12", "2026-05-13", "2026-05-14", "2026-05-15", "2026-05-16", "2026-05-17", "2026-05-18", "2026-05-19", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-23", "2026-05-24", "2026-05-25", "2026-05-26", "2026-05-27", "2026-05-28", "2026-05-29", "2026-05-30", "2026-05-31", "2026-06-01", "2026-06-02", "2026-06-03", "2026-06-04", "2026-06-05", "2026-06-06", "2026-06-07", "2026-06-08", "2026-06-09", "2026-06-10", "2026-06-18", "2026-06-19", "2026-06-20", "2026-06-23", "2026-06-27", "2026-06-29", "2026-06-30", "2026-07-02", "2026-07-03", "2026-07-12", "2026-08-10", "2026-08-11", "2026-08-17", "2026-08-25", "2026-08-26", "2026-10-02", "2026-10-04", "2026-10-05", "2026-10-06", "2026-10-09", "2026-10-11", "2026-10-15", "2026-10-17", "2026-10-18", "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23", "2026-10-24", "2026-10-25", "2026-10-26", "2026-10-27", "2026-10-28", "2026-10-29", "2026-11-01", "2026-11-02", "2026-11-03", "2026-11-04", "2026-11-05", "2026-11-06", "2026-11-07", "2026-11-08", "2026-11-09", "2026-11-10", "2026-11-11", "2026-11-12"]};
 
     // fullData stores ALL records for client-side filtering
     const fullData = {
