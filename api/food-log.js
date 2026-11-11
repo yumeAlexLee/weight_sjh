@@ -131,6 +131,16 @@ export default async function handler(req, res) {
 
       const { total } = nutrition;
 
+      const totalKcal = Number(total.kcal) || 0;
+      const totalProtein = Number(total.protein) || 0;
+      if (totalKcal === 0 && totalProtein === 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'この料理は認識できませんでした。材料と量で書いてみてください（例: 鶏もも200g じゃがいも100g）',
+          unknown: nutrition.unknownItemNames || [],
+        });
+      }
+
       // Append to CSV
       const { content, sha } = await getCSV();
       const newRow = `${date},${meal},${safeText},${Math.round(total.kcal)},${total.protein.toFixed(1)},${total.fat.toFixed(1)},${total.carb.toFixed(1)}\n`;
