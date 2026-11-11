@@ -90,6 +90,7 @@ def generate_html(records, stats):
     })
 
     rows_html = ""
+    records_count = len(records)
     if records:
         rows_html = "".join(
             f"<tr><td>{r['date']}</td><td>{r['weight']}</td><td class='note'>{r['note']}</td></tr>"
@@ -334,9 +335,14 @@ def generate_html(records, stats):
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-title">📋 记录明细</div>
-      <div class="table-wrap">
+    <!-- FOOD_SECTION_START -->
+    <!-- FOOD_SECTION_END -->
+
+    <details id="weight-detail" style="margin-top:16px;background:#1e293b;border-radius:14px;border:1px solid #334155;margin-bottom:16px;">
+      <summary style="cursor:pointer;padding:14px 18px;font-size:15px;font-weight:600;color:#cbd5e1;list-style:none;display:flex;align-items:center;gap:6px;">
+        📋 记录明细（<span id="weight-detail-count">{records_count}</span>件）
+      </summary>
+      <div class="table-wrap" style="padding:0 4px 4px;">
         <table>
           <thead>
             <tr><th>日期</th><th>体重</th><th>备注</th></tr>
@@ -344,10 +350,7 @@ def generate_html(records, stats):
           <tbody>{rows_html}</tbody>
         </table>
       </div>
-    </div>
-
-    <!-- FOOD_SECTION_START -->
-    <!-- FOOD_SECTION_END -->
+    </details>
 
     <div class="footer">在网站上记录体重即可 ✨</div>
   </div>

@@ -51,6 +51,26 @@
       .food-input-row select { flex: 0 0 90px; }
       .food-input-row input[type="text"] { flex: 1; }
     }
+    #food-bulk {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: #e2e8f0;
+      font-size: 14px;
+      resize: vertical;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+    #food-bulk:focus { border-color: #3b82f6; }
+    #food-bulk::placeholder { color: #475569; }
+    #food-bulk-actions { display: flex; gap: 8px; margin-top: 8px; }
+    #food-bulk-actions button { flex: 1; }
+    #food-preview-wrap { margin-top: 12px; display: none; }
+    #food-preview-wrap table { font-size: 12px; }
+    #food-preview-wrap .unknown-row td { color: #f87171; }
 </style>
 
 <section id="food-section">
@@ -86,6 +106,21 @@
       <thead><tr><th>時間帯</th><th>内容</th><th>kcal</th><th>蛋白(g)</th></tr></thead>
       <tbody></tbody>
     </table>
+  </div>
+
+  <div class="card">
+    <div style="font-size:14px;font-weight:600;color:#cbd5e1;margin-bottom:10px;">📋 まとめ貼り付け</div>
+    <textarea id="food-bulk" rows="8" placeholder="📅11/8:空腹54.5 🩸&#10;椰子水350ml、薯条中份、炸鸡汉堡半个&#10;水200ml、可乐500ml&#10;&#10;📅11/9:空腹54.5&#10;200ml水、两个鸡蛋白、200ml苹果汁&#10;鸡肉50g、牛肉20g、水500ml"></textarea>
+    <div id="food-bulk-actions">
+      <button class="btn" id="food-bulk-preview" onclick="bulkPreview()" style="padding:12px;font-size:14px;">プレビュー</button>
+      <button class="btn" id="food-bulk-save" onclick="bulkSave()" style="padding:12px;font-size:14px;display:none;">この内容で保存</button>
+    </div>
+    <div id="food-preview-wrap">
+      <table id="food-preview-table">
+        <thead><tr><th>日付</th><th>内容</th><th>kcal</th><th>蛋白(g)</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
 </section>
 
@@ -168,4 +203,113 @@
     }
 
     document.addEventListener('DOMContentLoaded', loadFood);
+
+    // ---- まとめ貼り付け ----
+
+    function parseBulkText(raw) {
+      var year = new Date().getFullYear();
+      var currentMonth = new Date().getMonth() + 1;
+      var entries = [];
+      var currentDate = null;
+      var lines = raw.split('\n');
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        if (!line || line.startsWith('#')) continue;
+        // date block: contains 📅 or 空腹
+        if (/📅/.test(line) || /空腹/.test(line)) {
+          var dm = line.match(/(\d{1,2})\/(\d{1,2})/);
+          if (dm) {
+            var m = parseInt(dm[1], 10);
+            var d = parseInt(dm[2], 10);
+            var y = year;
+            if (m > currentMonth) y = year - 1;
+            currentDate = y + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+          }
+          continue;
+        }
+        if (!currentDate) continue;
+        // split by delimiters
+        var parts = line.split(/[、，,；;]+/);
+        for (var j = 0; j < parts.length; j++) {
+          var p = parts[j].trim();
+          if (p) entries.push({ date: currentDate, meal: '一括', text: p });
+        }
+      }
+      return entries;
+    }
+
+    var _bulkPreviewData = null;
+
+    function bulkPreview() {
+      var raw = document.getElementById('food-bulk').value;
+      var entries = parseBulkText(raw);
+      if (!entries.length) {
+        document.getElementById('food-comment').textContent = '日付ブロック（📅11/8:）が見つかりませんでした';
+        return;
+      }
+      var btn = document.getElementById('food-bulk-preview');
+      btn.disabled = true; btn.textContent = '解析中…';
+      fetch('/api/food-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entries: entries, dryRun: true }),
+      })
+      .then(function(r) {
+        if (!r.ok) return r.json().then(function(d) { throw new Error(d.error || 'API_UNAVAILABLE'); });
+        return r.json().catch(function() { throw new Error('API_UNAVAILABLE'); });
+      })
+      .then(function(data) {
+        if (!data.success) throw new Error(data.error || 'エラー');
+        _bulkPreviewData = data.preview;
+        var tbody = document.querySelector('#food-preview-table tbody');
+        tbody.innerHTML = '';
+        (data.preview || []).forEach(function(p) {
+          var tr = document.createElement('tr');
+          if (p.unknown) tr.className = 'unknown-row';
+          tr.innerHTML = '<td>' + p.date + '</td><td>' + p.text + '</td><td>' + (p.unknown ? '-' : Math.round(p.kcal)) + '</td><td>' + (p.unknown ? '-' : parseFloat(p.protein).toFixed(1)) + '</td><td>' + (p.unknown ? '⚠️未認識' : '') + '</td>';
+          tbody.appendChild(tr);
+        });
+        document.getElementById('food-preview-wrap').style.display = 'block';
+        document.getElementById('food-bulk-save').style.display = 'block';
+      })
+      .catch(function(err) {
+        document.getElementById('food-comment').textContent = err.message === 'API_UNAVAILABLE'
+          ? 'プレビューできませんでした（Vercel 版でのみ動作します）'
+          : 'プレビューできませんでした（' + err.message + '）';
+      })
+      .finally(function() { btn.disabled = false; btn.textContent = 'プレビュー'; });
+    }
+
+    function bulkSave() {
+      if (!_bulkPreviewData) return;
+      var raw = document.getElementById('food-bulk').value;
+      var entries = parseBulkText(raw);
+      if (!entries.length) return;
+      var btn = document.getElementById('food-bulk-save');
+      btn.disabled = true; btn.textContent = '保存中…';
+      fetch('/api/food-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entries: entries, dryRun: false }),
+      })
+      .then(function(r) {
+        if (!r.ok) return r.json().then(function(d) { throw new Error(d.error || 'API_UNAVAILABLE'); });
+        return r.json().catch(function() { throw new Error('API_UNAVAILABLE'); });
+      })
+      .then(function(data) {
+        if (!data.success) throw new Error(data.error || 'エラー');
+        document.getElementById('food-bulk').value = '';
+        document.getElementById('food-preview-wrap').style.display = 'none';
+        btn.style.display = 'none';
+        _bulkPreviewData = null;
+        // reload today's summary
+        loadFood();
+      })
+      .catch(function(err) {
+        document.getElementById('food-comment').textContent = err.message === 'API_UNAVAILABLE'
+          ? '保存できませんでした（Vercel 版でのみ動作します）'
+          : '保存できませんでした（' + err.message + '）';
+      })
+      .finally(function() { btn.disabled = false; btn.textContent = 'この内容で保存'; });
+    }
 </script>

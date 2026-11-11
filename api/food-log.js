@@ -114,7 +114,70 @@ async function analyzeWithAI(text) {
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { date: rawDate, meal: rawMeal, text: rawText } = req.body || {};
+    const { date: rawDate, meal: rawMeal, text: rawText, entries, dryRun } = req.body || {};
+
+    // ---- batch mode: entries[] ----
+    if (entries && Array.isArray(entries)) {
+      if (entries.length > 200) {
+        return res.status(400).json({ success: false, error: '最大200件まで送信できます' });
+      }
+
+      const preview = [];
+      for (const ent of entries) {
+        const safeText = (ent.text || '').trim().replace(/[,\r\n]/g, ' ');
+        if (!safeText) continue;
+        const entryDate = ent.date || todayJST();
+        const entryMeal = ent.meal || '一括';
+        const nutrition = parseFood(safeText);
+        for (const item of nutrition.items) {
+          preview.push({
+            date: entryDate,
+            meal: entryMeal,
+            text: item.name || safeText,
+            kcal: item.kcal,
+            protein: item.protein,
+            fat: item.fat,
+            carb: item.carb,
+            unknown: !!item.unknown,
+          });
+        }
+      }
+
+      if (dryRun) {
+        const totals = {};
+        for (const p of preview.filter(p => !p.unknown)) {
+          if (!totals[p.date]) totals[p.date] = { kcal: 0, protein: 0, count: 0 };
+          totals[p.date].kcal += p.kcal;
+          totals[p.date].protein = parseFloat((totals[p.date].protein + p.protein).toFixed(1));
+          totals[p.date].count++;
+        }
+        return res.status(200).json({ success: true, dryRun: true, preview, totals });
+      }
+
+      const known = preview.filter(p => !p.unknown);
+      if (known.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'この料理は認識できませんでした。材料と量で書いてみてください（例: 鶏もも200g じゃがいも100g）',
+          unknown: preview.map(p => p.text),
+        });
+      }
+
+      try {
+        const { content, sha } = await getCSV();
+        let newContent = content;
+        for (const item of known) {
+          const row = `${item.date},${item.meal},${item.text.replace(/[,\r\n]/g, ' ')},${Math.round(item.kcal)},${item.protein.toFixed(1)},${item.fat.toFixed(1)},${item.carb.toFixed(1)}\n`;
+          newContent = newContent.endsWith('\n') ? newContent + row : newContent + '\n' + row;
+        }
+        await putCSV(newContent, sha, `add food: bulk ${known.length} entries`);
+        return res.status(200).json({ success: true, dryRun: false, preview, count: known.length });
+      } catch (err) {
+        return res.status(500).json({ success: false, error: err.message });
+      }
+    }
+
+    // ---- single entry mode ----
     const date = rawDate || todayJST();
     const meal = rawMeal || '夜';
     const text = (rawText || '').trim();
@@ -131,9 +194,7 @@ export default async function handler(req, res) {
 
       const { total } = nutrition;
 
-      const totalKcal = Number(total.kcal) || 0;
-      const totalProtein = Number(total.protein) || 0;
-      if (totalKcal === 0 && totalProtein === 0) {
+      if (nutrition.unknown === true) {
         return res.status(400).json({
           success: false,
           error: 'この料理は認識できませんでした。材料と量で書いてみてください（例: 鶏もも200g じゃがいも100g）',
