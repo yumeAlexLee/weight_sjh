@@ -6,6 +6,9 @@
   "functions": {
     "api/*.js": {
       "maxDuration": 10
+    },
+    "api/food-log.js": {
+      "maxDuration": 30
     }
   }
 }
