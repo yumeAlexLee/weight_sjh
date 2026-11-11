@@ -346,6 +346,9 @@ def generate_html(records, stats):
       </div>
     </div>
 
+    <!-- FOOD_SECTION_START -->
+    <!-- FOOD_SECTION_END -->
+
     <div class="footer">在网站上记录体重即可 ✨</div>
   </div>
 
@@ -641,6 +644,13 @@ def main():
     stats = compute_stats(records)
     os.makedirs(os.path.dirname(HTML_PATH), exist_ok=True)
     html = generate_html(records, stats)
+    food_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'docs', 'food-section.html')
+    if os.path.exists(food_path):
+        with open(food_path, 'r', encoding='utf-8') as f:
+            food_html = f.read()
+        if '<!-- FOOD_SECTION_START -->' in html:
+            html = html.replace('<!-- FOOD_SECTION_START -->', food_html, 1)
+            html = html.replace('<!-- FOOD_SECTION_END -->', '', 1)
     with open(HTML_PATH, "w", encoding="utf-8") as f:
         f.write(html)
     print(f"✅ Dashboard generated: {HTML_PATH}")

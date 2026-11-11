@@ -167,59 +167,6 @@
       .form-row-inputs { grid-template-columns: 1fr 1fr 1fr; }
       .card { padding: 24px; }
     }
-
-    /* Food section */
-    #food-section h2 { font-size: 16px; font-weight: 700; color: #f1f5f9; margin-bottom: 12px; }
-    .food-input-row {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .food-input-row select,
-    .food-input-row input[type="text"] {
-      background: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 10px;
-      padding: 12px 14px;
-      color: #e2e8f0;
-      font-size: 16px;
-      outline: none;
-      transition: border-color 0.2s;
-      -webkit-appearance: none;
-      appearance: none;
-    }
-    .food-input-row input[type="text"]:focus,
-    .food-input-row select:focus { border-color: #3b82f6; }
-    .food-input-row input[type="text"]::placeholder { color: #475569; }
-    .food-summary-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-    .food-stat { font-size: 13px; color: #94a3b8; }
-    .food-stat strong { color: #e2e8f0; font-size: 16px; }
-    .food-bar-wrap {
-      grid-column: 1 / -1;
-      background: #0f172a;
-      border-radius: 6px;
-      height: 8px;
-      overflow: hidden;
-    }
-    #food-bar-kcal {
-      display: block;
-      height: 100%;
-      background: linear-gradient(90deg, #3b82f6, #22c55e);
-      border-radius: 6px;
-      transition: width 0.4s;
-    }
-    #food-comment { font-size: 13px; color: #94a3b8; min-height: 20px; }
-    #food-table td { font-size: 13px; }
-    @media (min-width: 480px) {
-      .food-input-row { flex-direction: row; }
-      .food-input-row select { flex: 0 0 90px; }
-      .food-input-row input[type="text"] { flex: 1; }
-    }
   </style>
 </head>
 <body>
@@ -295,41 +242,179 @@
       </div>
     </div>
 
-    <section id="food-section">
-      <h2>🍽 今日の食事</h2>
+    <style>
+    /* Food section */
+    #food-section h2 { font-size: 16px; font-weight: 700; color: #f1f5f9; margin-bottom: 12px; }
+    .food-input-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .food-input-row select,
+    .food-input-row input[type="text"] {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: #e2e8f0;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .food-input-row input[type="text"]:focus,
+    .food-input-row select:focus { border-color: #3b82f6; }
+    .food-input-row input[type="text"]::placeholder { color: #475569; }
+    .food-summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .food-stat { font-size: 13px; color: #94a3b8; }
+    .food-stat strong { color: #e2e8f0; font-size: 16px; }
+    .food-bar-wrap {
+      grid-column: 1 / -1;
+      background: #0f172a;
+      border-radius: 6px;
+      height: 8px;
+      overflow: hidden;
+    }
+    #food-bar-kcal {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #22c55e);
+      border-radius: 6px;
+      transition: width 0.4s;
+    }
+    #food-comment { font-size: 13px; color: #94a3b8; min-height: 20px; }
+    #food-table td { font-size: 13px; }
+    @media (min-width: 480px) {
+      .food-input-row { flex-direction: row; }
+      .food-input-row select { flex: 0 0 90px; }
+      .food-input-row input[type="text"] { flex: 1; }
+    }
+</style>
 
-      <div class="card">
-        <div class="food-input-row">
-          <select id="food-meal">
-            <option value="朝">朝</option>
-            <option value="昼">昼</option>
-            <option value="夜" selected>夜</option>
-            <option value="間食">間食</option>
-          </select>
-          <input type="text" id="food-input" placeholder="例: 鶏むね150g ご飯200g ブロッコリー">
-          <button class="btn" id="food-submit" onclick="submitFood()" style="width:auto;padding:12px 20px;font-size:14px;">記録</button>
-        </div>
+<section id="food-section">
+  <h2>🍽 今日の食事</h2>
+
+  <div class="card">
+    <div class="food-input-row">
+      <select id="food-meal">
+        <option value="朝">朝</option>
+        <option value="昼">昼</option>
+        <option value="夜" selected>夜</option>
+        <option value="間食">間食</option>
+      </select>
+      <input type="text" id="food-input" placeholder="例: 鶏むね150g ご飯200g ブロッコリー">
+      <button class="btn" id="food-submit" onclick="submitFood()" style="width:auto;padding:12px 20px;font-size:14px;">記録</button>
+    </div>
+  </div>
+
+  <div class="card food-summary">
+    <div class="food-summary-grid">
+      <div class="food-stat">kcal <strong id="food-kcal-val">0</strong> / <span id="food-kcal-target">1700</span></div>
+      <div class="food-stat">蛋白 <strong id="food-protein-val">0</strong>g / <span id="food-protein-target">100</span>g</div>
+      <div class="food-bar-wrap">
+        <span id="food-bar-kcal" style="width:0%"></span>
       </div>
+    </div>
+  </div>
 
-      <div class="card food-summary">
-        <div class="food-summary-grid">
-          <div class="food-stat">kcal <strong id="food-kcal-val">0</strong> / <span id="food-kcal-target">1700</span></div>
-          <div class="food-stat">蛋白 <strong id="food-protein-val">0</strong>g / <span id="food-protein-target">100</span>g</div>
-          <div class="food-bar-wrap">
-            <span id="food-bar-kcal" style="width:0%"></span>
-          </div>
-        </div>
-      </div>
+  <div class="card" id="food-comment"></div>
 
-      <div class="card" id="food-comment"></div>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <table id="food-table">
+      <thead><tr><th>時間帯</th><th>内容</th><th>kcal</th><th>蛋白(g)</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
 
-      <div class="card" style="padding:0;overflow:hidden;">
-        <table id="food-table">
-          <thead><tr><th>時間帯</th><th>内容</th><th>kcal</th><th>蛋白(g)</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </section>
+<script>
+    const FOOD_TARGET = { kcal: 1700, protein: 100 };
+
+    function renderFoodUI(today, comment, items) {
+      var kcal = today ? today.kcal : 0;
+      var protein = today ? today.protein : 0;
+      document.getElementById('food-kcal-val').textContent = Math.round(kcal);
+      document.getElementById('food-protein-val').textContent = protein.toFixed(1);
+      var pct = Math.min(100, Math.round((kcal / FOOD_TARGET.kcal) * 100));
+      document.getElementById('food-bar-kcal').style.width = pct + '%';
+      document.getElementById('food-comment').textContent = comment || '';
+      if (items) {
+        var tbody = document.querySelector('#food-table tbody');
+        tbody.innerHTML = '';
+        items.forEach(function(r) {
+          var tr = document.createElement('tr');
+          tr.innerHTML = '<td>' + r.meal + '</td><td>' + r.text + '</td><td>' + Math.round(r.kcal) + '</td><td>' + parseFloat(r.protein).toFixed(1) + '</td>';
+          tbody.appendChild(tr);
+        });
+      }
+    }
+
+    function submitFood() {
+      var meal = document.getElementById('food-meal').value;
+      var text = document.getElementById('food-input').value.trim();
+      var btn = document.getElementById('food-submit');
+      if (!text) return;
+      btn.disabled = true;
+      btn.textContent = '記録中…';
+      var today = new Date().toLocaleDateString('sv-SE');
+      fetch('/api/food-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: today, meal: meal, text: text }),
+      })
+      .then(function(r) {
+        if (!r.ok) throw new Error('API_UNAVAILABLE');
+        return r.json().catch(function() { throw new Error('API_UNAVAILABLE'); });
+      })
+      .then(function(data) {
+        if (data.success) {
+          document.getElementById('food-input').value = '';
+          renderFoodUI(data.today, data.comment, null);
+          // prepend row to table
+          var tbody = document.querySelector('#food-table tbody');
+          var tr = document.createElement('tr');
+          tr.innerHTML = '<td>' + meal + '</td><td>' + text + '</td><td>' + Math.round(data.entry.kcal) + '</td><td>' + parseFloat(data.entry.protein).toFixed(1) + '</td>';
+          tbody.insertBefore(tr, tbody.firstChild);
+        } else {
+          document.getElementById('food-comment').textContent = '記録できませんでした: ' + (data.error || 'エラー');
+        }
+      })
+      .catch(function(err) {
+        document.getElementById('food-comment').textContent = err.message === 'API_UNAVAILABLE'
+          ? '記録できませんでした（Vercel 版でのみ動作します）'
+          : '記録できませんでした（' + err.message + '）';
+      })
+      .finally(function() {
+        btn.disabled = false;
+        btn.textContent = '記録';
+      });
+    }
+
+    function loadFood() {
+      var today = new Date().toLocaleDateString('sv-SE');
+      fetch('/api/food-log?date=' + today)
+      .then(function(r) {
+        if (!r.ok) throw new Error(r.status.toString());
+        return r.json();
+      })
+      .then(function(data) {
+        if (data.success) renderFoodUI(data.today, data.comment, data.items);
+      })
+      .catch(function() {
+        document.getElementById('food-comment').textContent = 'この環境では食事記録は使えません（Vercel 版でのみ動作します）';
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', loadFood);
+</script>
+
+    
 
     <div class="footer">在网站上记录体重即可 ✨</div>
   </div>
@@ -616,84 +701,6 @@ function addWeight() {
     btn.textContent = '提交';
   });
 }
-
-    const FOOD_TARGET = { kcal: 1700, protein: 100 };
-
-    function renderFoodUI(today, comment, items) {
-      var kcal = today ? today.kcal : 0;
-      var protein = today ? today.protein : 0;
-      document.getElementById('food-kcal-val').textContent = Math.round(kcal);
-      document.getElementById('food-protein-val').textContent = protein.toFixed(1);
-      var pct = Math.min(100, Math.round((kcal / FOOD_TARGET.kcal) * 100));
-      document.getElementById('food-bar-kcal').style.width = pct + '%';
-      document.getElementById('food-comment').textContent = comment || '';
-      if (items) {
-        var tbody = document.querySelector('#food-table tbody');
-        tbody.innerHTML = '';
-        items.forEach(function(r) {
-          var tr = document.createElement('tr');
-          tr.innerHTML = '<td>' + r.meal + '</td><td>' + r.text + '</td><td>' + Math.round(r.kcal) + '</td><td>' + parseFloat(r.protein).toFixed(1) + '</td>';
-          tbody.appendChild(tr);
-        });
-      }
-    }
-
-    function submitFood() {
-      var meal = document.getElementById('food-meal').value;
-      var text = document.getElementById('food-input').value.trim();
-      var btn = document.getElementById('food-submit');
-      if (!text) return;
-      btn.disabled = true;
-      btn.textContent = '記録中…';
-      var today = new Date().toLocaleDateString('sv-SE');
-      fetch('/api/food-log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: today, meal: meal, text: text }),
-      })
-      .then(function(r) {
-        if (!r.ok) throw new Error('API_UNAVAILABLE');
-        return r.json().catch(function() { throw new Error('API_UNAVAILABLE'); });
-      })
-      .then(function(data) {
-        if (data.success) {
-          document.getElementById('food-input').value = '';
-          renderFoodUI(data.today, data.comment, null);
-          // prepend row to table
-          var tbody = document.querySelector('#food-table tbody');
-          var tr = document.createElement('tr');
-          tr.innerHTML = '<td>' + meal + '</td><td>' + text + '</td><td>' + Math.round(data.entry.kcal) + '</td><td>' + parseFloat(data.entry.protein).toFixed(1) + '</td>';
-          tbody.insertBefore(tr, tbody.firstChild);
-        } else {
-          document.getElementById('food-comment').textContent = '記録できませんでした: ' + (data.error || 'エラー');
-        }
-      })
-      .catch(function(err) {
-        document.getElementById('food-comment').textContent = err.message === 'API_UNAVAILABLE'
-          ? '記録できませんでした（Vercel 版でのみ動作します）'
-          : '記録できませんでした（' + err.message + '）';
-      })
-      .finally(function() {
-        btn.disabled = false;
-        btn.textContent = '記録';
-      });
-    }
-
-    // Load today's food on page load
-    document.addEventListener('DOMContentLoaded', function() {
-      var today = new Date().toLocaleDateString('sv-SE');
-      fetch('/api/food-log?date=' + today)
-      .then(function(r) {
-        if (!r.ok) throw new Error(r.status.toString());
-        return r.json();
-      })
-      .then(function(data) {
-        if (data.success) renderFoodUI(data.today, data.comment, data.items);
-      })
-      .catch(function() {
-        document.getElementById('food-comment').textContent = 'この環境では食事記録は使えません（Vercel 版でのみ動作します）';
-      });
-    });
   </script>
 </body>
 </html>
