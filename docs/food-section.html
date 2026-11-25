@@ -426,6 +426,16 @@
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
+  async function loadItems(date) {
+    try {
+      var r = await fetch('/api/food-log?date=' + date);
+      if (r.ok) {
+        var data = await r.json();
+        if (data.success) renderItemsTable(data.items || [], date);
+      }
+    } catch {}
+  }
+
   async function loadFoodData() {
     var today = foodTodayJST();
     try {
@@ -435,10 +445,11 @@
         if (data.success) {
           _foodToday = data.today;
           renderOverview(data.today, data.comment);
-          renderItemsTable(data.items || [], today);
         }
       }
     } catch {}
+    var selectedDate = document.getElementById('food-items-date').value || today;
+    await loadItems(selectedDate);
     try {
       var r2 = await fetch('/api/food-analysis?date=' + today);
       if (r2.ok) {
@@ -616,7 +627,7 @@
     })
     .then(function(r) { return r.json(); })
     .then(function(data) {
-      if (data.success) loadFoodData();
+      if (data.success) loadItems(document.getElementById('food-items-date').value || foodTodayJST());
     })
     .catch(function() { btn.disabled = false; });
   }
@@ -681,11 +692,11 @@
     }
 
     document.querySelectorAll('.food-card').forEach(function(c) { c.classList.remove('is-hidden'); });
-    await loadFoodData();
     var today2 = foodTodayJST();
     var di = document.getElementById('food-items-date');
     di.value = today2;
     di.max = today2;
+    await loadFoodData();
     di.addEventListener('change', async function() {
       var date = di.value;
       if (!date) return;
