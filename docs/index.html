@@ -288,10 +288,13 @@
   #food-bulk::placeholder { color: #475569; }
   .food-btn-row { display: flex; gap: 8px; margin-top: 8px; }
   .food-btn-row .btn { flex: 1; padding: 12px; font-size: 14px; }
-  #food-preview-wrap { margin-top: 12px; }
+  #food-preview-wrap { margin-top: 12px; overflow-x: auto; }
   #food-preview-wrap table { font-size: 12px; }
+  #food-preview-table { table-layout: auto; min-width: 320px; }
+  #food-preview-table td { white-space: nowrap; }
+  .food-pv-date { font-size: 10px; color: #64748b; background: #334155; border-radius: 3px; padding: 1px 4px; margin-right: 4px; }
   #food-preview-wrap input[type="number"] {
-    width: 64px;
+    width: 72px;
     background: #0f172a;
     border: 1px solid #334155;
     border-radius: 6px;
@@ -395,7 +398,7 @@
       <table id="food-preview-table" style="width:100%;border-collapse:collapse;">
         <thead>
           <tr>
-            <th>日期</th><th>内容</th><th>kcal</th><th>蛋白(g)</th><th>来源</th><th></th>
+            <th>内容</th><th>kcal</th><th>蛋白(g)</th><th>来源</th><th></th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -539,6 +542,17 @@
   function renderItemsTable(items) {
     var tbody = document.querySelector('#food-items-table tbody');
     tbody.innerHTML = '';
+    if (!items.length) {
+      var tr = document.createElement('tr');
+      var td = document.createElement('td');
+      td.colSpan = 5;
+      td.textContent = '今天还没有记录';
+      td.style.color = '#64748b';
+      td.style.textAlign = 'center';
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
     for (var i = 0; i < items.length; i++) {
       var item = items[i];
       var tr = document.createElement('tr');
@@ -564,14 +578,17 @@
     _previewData = preview.slice();
     var tbody = document.querySelector('#food-preview-table tbody');
     tbody.innerHTML = '';
+    var prevDate = null;
     for (var i = 0; i < _previewData.length; i++) {
-      (function(idx) {
+      var curDate = _previewData[i].date;
+      (function(idx, showDate) {
         var p = _previewData[idx];
         var tr = document.createElement('tr');
         if (p.unknown) tr.className = 'unknown-row';
 
-        var td1 = document.createElement('td'); td1.textContent = p.date.slice(5);
-        var td2 = document.createElement('td'); td2.textContent = p.text;
+        var td2 = document.createElement('td');
+        var chipHtml = showDate ? '<span class="food-pv-date">' + p.date.slice(5).replace('-', '/') + '</span>' : '';
+        td2.innerHTML = chipHtml + esc(p.text);
         var td2b = document.createElement('td');
 
         var inp = document.createElement('input');
@@ -605,10 +622,11 @@
         });
         tdX.appendChild(xBtn);
 
-        tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td2b);
+        tr.appendChild(td2); tr.appendChild(td2b);
         tr.appendChild(td3); tr.appendChild(badgeCell); tr.appendChild(tdX);
         tbody.appendChild(tr);
-      })(i);
+      })(i, curDate !== prevDate);
+      prevDate = curDate;
     }
     updatePreviewTotals();
     document.getElementById('food-preview-wrap').style.display = '';
@@ -668,7 +686,10 @@
     if (!raw) return;
     var entries = parseBulkText(raw);
     if (!entries.length) {
-      document.getElementById('food-rule-comment').textContent = '没有找到日期块（需要像 📅11/8: 这样的行）';
+      var hasDateBlock = /📅/.test(raw) || /空腹\d/.test(raw);
+      document.getElementById('food-rule-comment').textContent = hasDateBlock
+        ? '日期块下面没有食物条目'
+        : '没有找到日期块（需要像 📅11/8: 这样的行）';
       return;
     }
     var btn = document.getElementById('food-parse-btn');
@@ -719,18 +740,27 @@
       if (data.totals) {
         Object.values(data.totals).forEach(function(t) { totalUnknown += (t.unknownCount || 0); });
       }
+      var today = foodTodayJST();
+      var pastDates = [];
+      toSave.forEach(function(p) {
+        if (p.date !== today && pastDates.indexOf(p.date) < 0) pastDates.push(p.date);
+      });
+      pastDates.sort();
+      var baseCount = '已保存 ' + data.count + ' 项';
+      if (pastDates.length > 0) {
+        var firstPast = pastDates[0].slice(5).replace('-', '/');
+        baseCount += '（含 ' + firstPast + ' 等过去日期，今日概览不变）';
+      }
       var saveMsg;
       if (totalUnknown > 0) {
-        saveMsg = '已保存 ' + data.count + ' 项（⚠️ ' + totalUnknown + ' 项未识别，未计入总量）';
+        saveMsg = baseCount + '（⚠️ ' + totalUnknown + ' 项未识别，未计入总量）';
         if (data.skipped > 0) saveMsg += '，已存在 ' + data.skipped + ' 项，跳过';
       } else if (data.skipped > 0) {
-        saveMsg = '已保存 ' + data.count + ' 项，已存在 ' + data.skipped + ' 项，跳过';
+        saveMsg = baseCount + '，已存在 ' + data.skipped + ' 项，跳过';
       } else {
-        saveMsg = '已保存 ' + data.count + ' 项';
+        saveMsg = baseCount;
       }
       document.getElementById('food-rule-comment').textContent = saveMsg;
-      // Try to generate AI analysis
-      var today = foodTodayJST();
       fetch('/api/food-analysis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -834,6 +864,20 @@
           var y = year;
           if (m > currentMonth) y = year - 1;
           currentDate = y + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+          var remainder = line
+            .replace(/📅/, '')
+            .replace(/\d{1,2}\/\d{1,2}/, '')
+            .replace(/空腹\d+(\.\d+)?/, '')
+            .replace(/\p{Extended_Pictographic}/gu, '')
+            .replace(/^[\s:：、，,]+|[\s:：、，,]+$/g, '')
+            .trim();
+          if (remainder) {
+            var rParts = remainder.split(/[、，,；;]+/);
+            for (var k = 0; k < rParts.length; k++) {
+              var rp = rParts[k].trim();
+              if (rp) entries.push({ date: currentDate, meal: '一括', text: rp });
+            }
+          }
         }
         continue;
       }
