@@ -26,8 +26,8 @@ function daysAgoJST(n) {
 }
 
 async function getCSV() {
-  const res = await fetch(`${API}?ref=${BRANCH}`, {
-    headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: 'application/vnd.github+json' },
+  const res = await fetch(`${API}?ref=${BRANCH}&t=${Date.now()}`, {
+    headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: 'application/vnd.github+json', 'Cache-Control': 'no-cache' },
   });
   if (res.status === 404) return { content: 'date,meal,text,kcal,protein,fat,carb\n', sha: null };
   if (!res.ok) throw new Error(`GitHub GET failed: ${res.status}`);

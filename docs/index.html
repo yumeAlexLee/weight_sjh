@@ -292,6 +292,7 @@
   #food-preview-wrap table { font-size: 12px; }
   #food-preview-table { table-layout: auto; min-width: 320px; }
   #food-preview-table td { white-space: nowrap; }
+  #food-preview-table thead th { white-space: nowrap; }
   .food-pv-date { font-size: 10px; color: #64748b; background: #334155; border-radius: 3px; padding: 1px 4px; margin-right: 4px; }
   #food-preview-wrap input[type="number"] {
     width: 72px;
@@ -398,7 +399,7 @@
       <table id="food-preview-table" style="width:100%;border-collapse:collapse;">
         <thead>
           <tr>
-            <th>内容</th><th>kcal</th><th>蛋白(g)</th><th>来源</th><th></th>
+            <th>内容</th><th>kcal</th><th>蛋白</th><th>来源</th><th></th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -439,7 +440,10 @@
 
   <!-- 5. 今天已记录明细 -->
   <div class="card food-card is-hidden" id="food-items-card">
-    <div class="card-title">今日明细</div>
+    <div class="card-title" style="display:flex;align-items:center;gap:8px;">
+      <span id="food-items-title">明细</span>
+      <input type="date" id="food-items-date" style="margin-left:auto;background:#0f172a;border:1px solid #334155;border-radius:6px;padding:3px 7px;color:#e2e8f0;font-size:12px;outline:none;">
+    </div>
     <div style="overflow-x:auto;">
       <table id="food-items-table" style="width:100%;border-collapse:collapse;">
         <thead>
@@ -539,14 +543,16 @@
     }
   }
 
-  function renderItemsTable(items) {
+  function renderItemsTable(items, date) {
+    var today = foodTodayJST();
+    var selectedDate = date || today;
     var tbody = document.querySelector('#food-items-table tbody');
     tbody.innerHTML = '';
     if (!items.length) {
       var tr = document.createElement('tr');
       var td = document.createElement('td');
       td.colSpan = 5;
-      td.textContent = '今天还没有记录';
+      td.textContent = selectedDate === today ? '今天还没有记录' : '这一天没有记录';
       td.style.color = '#64748b';
       td.style.textAlign = 'center';
       tr.appendChild(td);
@@ -661,7 +667,7 @@
         if (data.success) {
           _foodToday = data.today;
           renderOverview(data.today, data.comment);
-          renderItemsTable(data.items || []);
+          renderItemsTable(data.items || [], today);
         }
       }
     } catch {}
@@ -908,6 +914,23 @@
 
     document.querySelectorAll('.food-card').forEach(function(c) { c.classList.remove('is-hidden'); });
     await loadFoodData();
+    var today2 = foodTodayJST();
+    var di = document.getElementById('food-items-date');
+    di.value = today2;
+    di.max = today2;
+    di.addEventListener('change', async function() {
+      var date = di.value;
+      if (!date) return;
+      var t = foodTodayJST();
+      document.getElementById('food-items-title').textContent = date === t ? '明细' : '明细 · ' + date.slice(5).replace('-', '/');
+      try {
+        var r = await fetch('/api/food-log?date=' + date);
+        if (r.ok) {
+          var data = await r.json();
+          if (data.success) renderItemsTable(data.items || [], date);
+        }
+      } catch {}
+    });
   });
 })();
 </script>

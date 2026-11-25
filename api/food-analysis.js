@@ -15,8 +15,8 @@ function todayJST() {
 }
 
 async function getFile(path) {
-  const res = await fetch(`${API_BASE}${path}?ref=${BRANCH}`, {
-    headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: 'application/vnd.github+json' },
+  const res = await fetch(`${API_BASE}${path}?ref=${BRANCH}&t=${Date.now()}`, {
+    headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: 'application/vnd.github+json', 'Cache-Control': 'no-cache' },
   });
   if (res.status === 404) return { content: null, sha: null };
   if (!res.ok) throw new Error(`GitHub GET failed: ${res.status}`);

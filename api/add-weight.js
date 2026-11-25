@@ -21,10 +21,11 @@ export default async function handler(req, res) {
 
   try {
     // 1. 获取当前文件内容和 SHA
-    const getRes = await fetch(`${API}?ref=${BRANCH}`, {
+    const getRes = await fetch(`${API}?ref=${BRANCH}&t=${Date.now()}`, {
       headers: {
         Authorization: `Bearer ${GITHUB_TOKEN}`,
         Accept: 'application/vnd.github+json',
+        'Cache-Control': 'no-cache',
       },
     });
 
