@@ -419,7 +419,7 @@ export default async function handler(req, res) {
         if (nutrition.unknown === true && nutrition.items.every(it => it.unknown)) {
           return res.status(400).json({
             success: false,
-            error: 'この料理は認識できませんでした。材料と量で書いてみてください',
+            error: '没认出这是什么。请写成材料和量（例：鸡胸 150g、米饭 200g）',
             unknown: nutrition.unknownItemNames || [],
           });
         }

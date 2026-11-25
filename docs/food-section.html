@@ -1,7 +1,7 @@
 <style>
   #food-section h2 { font-size: 16px; font-weight: 700; color: #f1f5f9; margin-bottom: 12px; }
+  .is-hidden { display: none; }
   #food-unavail-banner {
-    display: none;
     background: #1e293b;
     border: 1px solid #334155;
     border-radius: 14px;
@@ -11,7 +11,7 @@
     margin-bottom: 16px;
   }
   #food-unavail-banner a { color: #3b82f6; }
-  .food-card { display: none; }
+  .food-card.is-hidden { display: none; }
   .food-progress-wrap {
     background: #0f172a;
     border-radius: 6px;
@@ -117,12 +117,12 @@
 <section id="food-section">
   <h2>🍽 饮食记录</h2>
 
-  <div id="food-unavail-banner">
+  <div id="food-unavail-banner" class="is-hidden">
     记录功能请在 <a href="https://weight-sjh.vercel.app" target="_blank">weight-sjh.vercel.app</a> 打开
   </div>
 
   <!-- 1. 今日概览卡 -->
-  <div class="card food-card" id="food-overview-card">
+  <div class="card food-card is-hidden" id="food-overview-card">
     <div class="card-title">今日概览</div>
     <div class="food-stat-row">
       <span>热量</span>
@@ -145,7 +145,7 @@
   </div>
 
   <!-- 2. AI 分析卡 -->
-  <div class="card food-card" id="food-ai-card">
+  <div class="card food-card is-hidden" id="food-ai-card">
     <div class="card-title">🤖 AI 分析</div>
     <div id="food-ai-content">
       <button class="btn" id="food-ai-gen-btn" onclick="foodGenerateAI(false)" style="font-size:14px;padding:12px;">生成今天的分析</button>
@@ -153,7 +153,7 @@
   </div>
 
   <!-- 3. 记录输入 -->
-  <div class="card food-card" id="food-input-card">
+  <div class="card food-card is-hidden" id="food-input-card">
     <div class="card-title">记录输入</div>
     <textarea id="food-bulk" rows="6" placeholder="📅11/8:空腹54.5 🩸&#10;椰子水350ml、薯条中份、炸鸡汉堡半个&#10;水200ml、可乐500ml"></textarea>
     <div class="food-btn-row">
@@ -190,7 +190,7 @@
   </div>
 
   <!-- 4. 近 7 天 -->
-  <div class="card food-card" id="food-week-card">
+  <div class="card food-card is-hidden" id="food-week-card">
     <div class="card-title">近 7 天</div>
     <div style="overflow-x:auto;">
       <table id="food-week-table" style="width:100%;border-collapse:collapse;">
@@ -203,7 +203,7 @@
   </div>
 
   <!-- 5. 今天已记录明细 -->
-  <div class="card food-card" id="food-items-card">
+  <div class="card food-card is-hidden" id="food-items-card">
     <div class="card-title">今日明细</div>
     <div style="overflow-x:auto;">
       <table id="food-items-table" style="width:100%;border-collapse:collapse;">
@@ -626,11 +626,11 @@
     } catch {}
 
     if (!ok) {
-      document.getElementById('food-unavail-banner').style.display = '';
+      document.getElementById('food-unavail-banner').classList.remove('is-hidden');
       return;
     }
 
-    document.querySelectorAll('.food-card').forEach(function(c) { c.style.display = ''; });
+    document.querySelectorAll('.food-card').forEach(function(c) { c.classList.remove('is-hidden'); });
     await loadFoodData();
   });
 })();
