@@ -192,7 +192,7 @@
       </div>
       <div class="stat-card">
         <div class="label">记录天数</div>
-        <div class="value">140天</div>
+        <div class="value">141天</div>
       </div>
     </div>
 
@@ -215,125 +215,224 @@
     </div>
 
     <style>
-    /* Food section */
-    #food-section h2 { font-size: 16px; font-weight: 700; color: #f1f5f9; margin-bottom: 12px; }
-    .food-input-row {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .food-input-row select,
-    .food-input-row input[type="text"] {
-      background: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 10px;
-      padding: 12px 14px;
-      color: #e2e8f0;
-      font-size: 16px;
-      outline: none;
-      transition: border-color 0.2s;
-      -webkit-appearance: none;
-      appearance: none;
-    }
-    .food-input-row input[type="text"]:focus,
-    .food-input-row select:focus { border-color: #3b82f6; }
-    .food-input-row input[type="text"]::placeholder { color: #475569; }
-    .food-summary-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-    .food-stat { font-size: 13px; color: #94a3b8; }
-    .food-stat strong { color: #e2e8f0; font-size: 16px; }
-    .food-bar-wrap {
-      grid-column: 1 / -1;
-      background: #0f172a;
-      border-radius: 6px;
-      height: 8px;
-      overflow: hidden;
-    }
-    #food-bar-kcal {
-      display: block;
-      height: 100%;
-      background: linear-gradient(90deg, #3b82f6, #22c55e);
-      border-radius: 6px;
-      transition: width 0.4s;
-    }
-    #food-comment { font-size: 13px; color: #94a3b8; min-height: 20px; }
-    #food-table td { font-size: 13px; }
-    @media (min-width: 480px) {
-      .food-input-row { flex-direction: row; }
-      .food-input-row select { flex: 0 0 90px; }
-      .food-input-row input[type="text"] { flex: 1; }
-    }
-    #food-bulk {
-      width: 100%;
-      background: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 10px;
-      padding: 12px 14px;
-      color: #e2e8f0;
-      font-size: 14px;
-      resize: vertical;
-      outline: none;
-      font-family: inherit;
-      transition: border-color 0.2s;
-    }
-    #food-bulk:focus { border-color: #3b82f6; }
-    #food-bulk::placeholder { color: #475569; }
-    #food-bulk-actions { display: flex; gap: 8px; margin-top: 8px; }
-    #food-bulk-actions button { flex: 1; }
-    #food-preview-wrap { margin-top: 12px; display: none; }
-    #food-preview-wrap table { font-size: 12px; }
-    #food-preview-wrap .unknown-row td { color: #f87171; }
+  #food-section h2 { font-size: 16px; font-weight: 700; color: #f1f5f9; margin-bottom: 12px; }
+  .is-hidden { display: none; }
+  #food-unavail-banner {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 14px;
+    padding: 14px 18px;
+    font-size: 14px;
+    color: #94a3b8;
+    margin-bottom: 16px;
+  }
+  #food-unavail-banner a { color: #3b82f6; }
+  .food-card.is-hidden { display: none; }
+  .food-progress-wrap {
+    background: #0f172a;
+    border-radius: 6px;
+    height: 8px;
+    overflow: hidden;
+    margin: 6px 0 12px;
+  }
+  .food-progress-bar {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #22c55e);
+    border-radius: 6px;
+    transition: width 0.4s;
+  }
+  .food-progress-bar.over { background: #ef4444; }
+  .food-progress-bar.protein-bar { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+  .food-stat-row { display: flex; align-items: baseline; gap: 6px; font-size: 13px; color: #94a3b8; }
+  .food-stat-row strong { font-size: 20px; color: #f1f5f9; }
+  .food-stat-row .remain { margin-left: auto; font-size: 12px; }
+  .food-stat-row .remain.over { color: #f87171; }
+  #food-rule-comment { font-size: 13px; color: #94a3b8; margin-top: 4px; }
+  #food-ai-verdict { font-size: 20px; font-weight: 700; color: #f1f5f9; margin-bottom: 6px; }
+  #food-ai-advice { font-size: 14px; color: #cbd5e1; margin-bottom: 12px; }
+  .food-ai-meta { display: flex; justify-content: space-between; align-items: center; }
+  .food-ai-meta span { font-size: 11px; color: #64748b; }
+  .food-ai-meta button { font-size: 12px; color: #3b82f6; background: none; border: none; cursor: pointer; padding: 4px 8px; }
+  #food-bulk {
+    width: 100%;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: #e2e8f0;
+    font-size: 14px;
+    resize: vertical;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+  }
+  #food-bulk:focus { border-color: #3b82f6; }
+  #food-bulk::placeholder { color: #475569; }
+  .food-btn-row { display: flex; gap: 8px; margin-top: 8px; }
+  .food-btn-row .btn { flex: 1; padding: 12px; font-size: 14px; }
+  #food-preview-wrap { margin-top: 12px; overflow-x: auto; }
+  #food-preview-wrap table { font-size: 12px; }
+  #food-preview-table { table-layout: auto; min-width: 320px; }
+  #food-preview-table td { white-space: nowrap; }
+  #food-preview-table thead th { white-space: nowrap; }
+  .food-pv-date { font-size: 10px; color: #64748b; background: #334155; border-radius: 3px; padding: 1px 4px; margin-right: 4px; }
+  #food-preview-wrap input[type="number"] {
+    width: 72px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 4px 6px;
+    color: #e2e8f0;
+    font-size: 12px;
+    outline: none;
+  }
+  #food-preview-wrap input[type="number"]:focus { border-color: #3b82f6; }
+  .unknown-row td { color: #f87171; }
+  .unknown-row input[type="number"] { border-color: #ef4444; }
+  .food-preview-total { font-size: 13px; color: #94a3b8; margin: 10px 0 8px; text-align: right; }
+  .food-badge {
+    display: inline-block;
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .food-badge.ai { background: #3b1e7420; color: #a78bfa; border: 1px solid #7c3aed40; }
+  .food-badge.rule { background: #0369a120; color: #38bdf8; border: 1px solid #0369a140; }
+  .food-badge.manual { background: #92400e20; color: #fbbf24; border: 1px solid #b4590940; }
+  .food-del-btn {
+    background: none;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    font-size: 15px;
+    padding: 2px 6px;
+    opacity: 0.7;
+  }
+  .food-del-btn:hover { opacity: 1; }
+  #food-week-table th, #food-week-table td { font-size: 12px; padding: 8px 10px; }
+  #food-week-table .over-kcal { color: #f87171; }
+  #food-items-table th, #food-items-table td { font-size: 13px; }
+  .food-single-form { padding: 10px 0 2px; display: flex; flex-direction: column; gap: 8px; }
+  .food-single-row { display: flex; gap: 8px; }
+  .food-single-row select, .food-single-row input[type="text"] {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: #e2e8f0;
+    font-size: 14px;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .food-single-row select { flex: 0 0 72px; }
+  .food-single-row input[type="text"] { flex: 1; }
+  details > summary { cursor: pointer; list-style: none; }
+  details > summary::-webkit-details-marker { display: none; }
 </style>
 
 <section id="food-section">
-  <h2>🍽 今日の食事</h2>
+  <h2>🍽 饮食记录</h2>
 
-  <div class="card">
-    <div class="food-input-row">
-      <select id="food-meal">
-        <option value="朝">朝</option>
-        <option value="昼">昼</option>
-        <option value="夜" selected>夜</option>
-        <option value="間食">間食</option>
-      </select>
-      <input type="text" id="food-input" placeholder="例: 鶏むね150g ご飯200g ブロッコリー">
-      <button class="btn" id="food-submit" onclick="submitFood()" style="width:auto;padding:12px 20px;font-size:14px;">記録</button>
+  <div id="food-unavail-banner" class="is-hidden">
+    记录功能请在 <a href="https://weight-sjh.vercel.app" target="_blank">weight-sjh.vercel.app</a> 打开
+  </div>
+
+  <!-- 1. 今日概览卡 -->
+  <div class="card food-card is-hidden" id="food-overview-card">
+    <div class="card-title">今日概览</div>
+    <div class="food-stat-row">
+      <span>热量</span>
+      <strong id="food-kcal-val">0</strong>
+      <span>/ <span id="food-kcal-target">1700</span> kcal</span>
+      <span class="remain" id="food-kcal-remain">剩余 1700 kcal</span>
+    </div>
+    <div class="food-progress-wrap">
+      <span class="food-progress-bar" id="food-bar-kcal" style="width:0%"></span>
+    </div>
+    <div class="food-stat-row">
+      <span>蛋白</span>
+      <strong id="food-protein-val">0.0</strong>
+      <span>/ <span id="food-protein-target">100</span> g</span>
+    </div>
+    <div class="food-progress-wrap">
+      <span class="food-progress-bar protein-bar" id="food-bar-protein" style="width:0%"></span>
+    </div>
+    <div id="food-rule-comment"></div>
+  </div>
+
+  <!-- 2. AI 分析卡 -->
+  <div class="card food-card is-hidden" id="food-ai-card">
+    <div class="card-title">🤖 AI 分析</div>
+    <div id="food-ai-content">
+      <button class="btn" id="food-ai-gen-btn" onclick="foodGenerateAI(false)" style="font-size:14px;padding:12px;">生成今天的分析</button>
     </div>
   </div>
 
-  <div class="card food-summary">
-    <div class="food-summary-grid">
-      <div class="food-stat">kcal <strong id="food-kcal-val">0</strong> / <span id="food-kcal-target">1700</span></div>
-      <div class="food-stat">蛋白 <strong id="food-protein-val">0</strong>g / <span id="food-protein-target">100</span>g</div>
-      <div class="food-bar-wrap">
-        <span id="food-bar-kcal" style="width:0%"></span>
+  <!-- 3. 记录输入 -->
+  <div class="card food-card is-hidden" id="food-input-card">
+    <div class="card-title">记录输入</div>
+    <textarea id="food-bulk" rows="6" placeholder="📅11/8:空腹54.5 🩸&#10;椰子水350ml、薯条中份、炸鸡汉堡半个&#10;水200ml、可乐500ml"></textarea>
+    <div class="food-btn-row">
+      <button class="btn" id="food-parse-btn" onclick="foodParse()" style="padding:12px;font-size:14px;">解析</button>
+    </div>
+    <div id="food-preview-wrap" style="display:none;">
+      <table id="food-preview-table" style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th>内容</th><th>kcal</th><th>蛋白</th><th>来源</th><th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div class="food-preview-total" id="food-preview-total">本段合计 0 kcal / 蛋白 0.0 g</div>
+      <button class="btn" id="food-save-btn" onclick="foodSave()" style="padding:12px;font-size:14px;">保存 0 项</button>
+    </div>
+
+    <details style="margin-top:14px;">
+      <summary style="font-size:13px;color:#3b82f6;padding:4px 0;">+ 单项</summary>
+      <div class="food-single-form">
+        <div class="food-single-row">
+          <select id="food-single-meal">
+            <option value="朝">朝</option>
+            <option value="昼">昼</option>
+            <option value="夜" selected>夜</option>
+            <option value="間食">間食</option>
+          </select>
+          <input type="text" id="food-single-text" placeholder="例: 鶏むね150g">
+        </div>
+        <button class="btn" id="food-single-btn" onclick="foodSingleSubmit()" style="padding:12px;font-size:14px;">记录</button>
       </div>
+    </details>
+  </div>
+
+  <!-- 4. 近 7 天 -->
+  <div class="card food-card is-hidden" id="food-week-card">
+    <div class="card-title">近 7 天</div>
+    <div style="overflow-x:auto;">
+      <table id="food-week-table" style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr><th>日期</th><th>kcal</th><th>蛋白(g)</th><th>体重</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
   </div>
 
-  <div class="card" id="food-comment"></div>
-
-  <div class="card" style="padding:0;overflow:hidden;">
-    <table id="food-table">
-      <thead><tr><th>時間帯</th><th>内容</th><th>kcal</th><th>蛋白(g)</th></tr></thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <div class="card">
-    <div style="font-size:14px;font-weight:600;color:#cbd5e1;margin-bottom:10px;">📋 まとめ貼り付け</div>
-    <textarea id="food-bulk" rows="8" placeholder="📅11/8:空腹54.5 🩸&#10;椰子水350ml、薯条中份、炸鸡汉堡半个&#10;水200ml、可乐500ml&#10;&#10;📅11/9:空腹54.5&#10;200ml水、两个鸡蛋白、200ml苹果汁&#10;鸡肉50g、牛肉20g、水500ml"></textarea>
-    <div id="food-bulk-actions">
-      <button class="btn" id="food-bulk-preview" onclick="bulkPreview()" style="padding:12px;font-size:14px;">プレビュー</button>
-      <button class="btn" id="food-bulk-save" onclick="bulkSave()" style="padding:12px;font-size:14px;display:none;">この内容で保存</button>
+  <!-- 5. 今天已记录明细 -->
+  <div class="card food-card is-hidden" id="food-items-card">
+    <div class="card-title" style="display:flex;align-items:center;gap:8px;">
+      <span id="food-items-title">明细</span>
+      <input type="date" id="food-items-date" style="margin-left:auto;background:#0f172a;border:1px solid #334155;border-radius:6px;padding:3px 7px;color:#e2e8f0;font-size:12px;outline:none;">
     </div>
-    <div id="food-preview-wrap">
-      <table id="food-preview-table">
-        <thead><tr><th>日付</th><th>内容</th><th>kcal</th><th>蛋白(g)</th><th></th></tr></thead>
+    <div style="overflow-x:auto;">
+      <table id="food-items-table" style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr><th>时段</th><th>内容</th><th>kcal</th><th>蛋白(g)</th><th></th></tr>
+        </thead>
         <tbody></tbody>
       </table>
     </div>
@@ -341,207 +440,508 @@
 </section>
 
 <script>
-    const FOOD_TARGET = { kcal: 1700, protein: 100 };
+(function() {
+  var FOOD_TARGET = { kcal: 1700, protein: 100 };
+  var _previewData = [];
+  var _foodToday = null;
 
-    function renderFoodUI(today, comment, items) {
-      var kcal = today ? today.kcal : 0;
-      var protein = today ? today.protein : 0;
-      document.getElementById('food-kcal-val').textContent = Math.round(kcal);
-      document.getElementById('food-protein-val').textContent = protein.toFixed(1);
-      var pct = Math.min(100, Math.round((kcal / FOOD_TARGET.kcal) * 100));
-      document.getElementById('food-bar-kcal').style.width = pct + '%';
-      document.getElementById('food-comment').textContent = comment || '';
-      if (items) {
-        var tbody = document.querySelector('#food-table tbody');
-        tbody.innerHTML = '';
-        items.forEach(function(r) {
-          var tr = document.createElement('tr');
-          tr.innerHTML = '<td>' + r.meal + '</td><td>' + r.text + '</td><td>' + Math.round(r.kcal) + '</td><td>' + parseFloat(r.protein).toFixed(1) + '</td>';
-          tbody.appendChild(tr);
+  function foodTodayJST() {
+    return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' });
+  }
+
+  function sourceBadge(source) {
+    var map = { ai: 'AI', rule: '内藏库', manual: '手动' };
+    var cls = { ai: 'ai', rule: 'rule', manual: 'manual' };
+    var label = map[source] || source || '?';
+    var c = cls[source] || 'rule';
+    return '<span class="food-badge ' + c + '">' + label + '</span>';
+  }
+
+  function renderOverview(today, comment) {
+    var kcal = today ? Math.round(today.kcal) : 0;
+    var protein = today ? parseFloat(today.protein || 0) : 0;
+    document.getElementById('food-kcal-val').textContent = kcal;
+    document.getElementById('food-protein-val').textContent = protein.toFixed(1);
+    var kcalPct = Math.min(100, Math.round(kcal / FOOD_TARGET.kcal * 100));
+    var bar = document.getElementById('food-bar-kcal');
+    bar.style.width = kcalPct + '%';
+    if (kcal > FOOD_TARGET.kcal) {
+      bar.className = 'food-progress-bar over';
+    } else {
+      bar.className = 'food-progress-bar';
+    }
+    var remain = document.getElementById('food-kcal-remain');
+    if (kcal > FOOD_TARGET.kcal) {
+      remain.textContent = '超出 ' + (kcal - FOOD_TARGET.kcal) + ' kcal';
+      remain.className = 'remain over';
+    } else {
+      remain.textContent = '剩余 ' + (FOOD_TARGET.kcal - kcal) + ' kcal';
+      remain.className = 'remain';
+    }
+    var protPct = Math.min(100, Math.round(protein / FOOD_TARGET.protein * 100));
+    document.getElementById('food-bar-protein').style.width = protPct + '%';
+    document.getElementById('food-rule-comment').textContent = comment || '';
+  }
+
+  function renderAICard(analysis) {
+    var el = document.getElementById('food-ai-content');
+    if (!analysis) {
+      el.innerHTML = '<button class="btn" id="food-ai-gen-btn" onclick="foodGenerateAI(false)" style="font-size:14px;padding:12px;">生成今天的分析</button>';
+      return;
+    }
+    var isRule = analysis.model === 'rule';
+    var timeStr = '';
+    if (analysis.updated_at) {
+      var t = analysis.updated_at.slice(5, 16).replace('T', ' ');
+      timeStr = t;
+    }
+    var metaLabel = isRule ? '规则版（未接 AI）' : 'AI · ' + timeStr + ' 生成';
+    el.innerHTML =
+      '<div id="food-ai-verdict">' + esc(analysis.verdict) + '</div>' +
+      '<div id="food-ai-advice">' + esc(analysis.advice) + '</div>' +
+      '<div class="food-ai-meta">' +
+        '<span>' + metaLabel + '</span>' +
+        '<button onclick="foodGenerateAI(true)">重新分析</button>' +
+      '</div>';
+  }
+
+  function renderWeekTable(days) {
+    var tbody = document.querySelector('#food-week-table tbody');
+    tbody.innerHTML = '';
+    for (var i = 0; i < days.length; i++) {
+      var d = days[i];
+      var weight = null;
+      if (typeof chartData !== 'undefined' && chartData.rawDates) {
+        var idx = chartData.rawDates.indexOf(d.date);
+        if (idx >= 0) weight = chartData.weights[idx];
+      }
+      var isOver = d.kcal > FOOD_TARGET.kcal;
+      var tr = document.createElement('tr');
+      if (isOver) tr.className = 'over-kcal';
+      tr.innerHTML =
+        '<td>' + d.date.slice(5) + '</td>' +
+        '<td>' + (d.kcal || 0) + '</td>' +
+        '<td>' + parseFloat(d.protein || 0).toFixed(1) + '</td>' +
+        '<td>' + (weight !== null ? weight + 'kg' : '-') + '</td>';
+      tbody.appendChild(tr);
+    }
+  }
+
+  function renderItemsTable(items, date) {
+    var today = foodTodayJST();
+    var selectedDate = date || today;
+    var tbody = document.querySelector('#food-items-table tbody');
+    tbody.innerHTML = '';
+    if (!items.length) {
+      var tr = document.createElement('tr');
+      var td = document.createElement('td');
+      td.colSpan = 5;
+      td.textContent = selectedDate === today ? '今天还没有记录' : '这一天没有记录';
+      td.style.color = '#64748b';
+      td.style.textAlign = 'center';
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+    for (var i = 0; i < items.length; i++) {
+      var item = items[i];
+      var tr = document.createElement('tr');
+      var delBtn = document.createElement('button');
+      delBtn.className = 'food-del-btn';
+      delBtn.textContent = '🗑';
+      delBtn.dataset.date = item.date;
+      delBtn.dataset.meal = item.meal;
+      delBtn.dataset.text = item.text;
+      delBtn.addEventListener('click', handleItemDelete);
+      var td1 = document.createElement('td'); td1.textContent = item.meal;
+      var td2 = document.createElement('td'); td2.textContent = item.text;
+      var td3 = document.createElement('td'); td3.textContent = Math.round(item.kcal);
+      var td4 = document.createElement('td'); td4.textContent = parseFloat(item.protein || 0).toFixed(1);
+      var td5 = document.createElement('td'); td5.appendChild(delBtn);
+      tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3);
+      tr.appendChild(td4); tr.appendChild(td5);
+      tbody.appendChild(tr);
+    }
+  }
+
+  function renderPreviewTable(preview) {
+    _previewData = preview.slice();
+    var tbody = document.querySelector('#food-preview-table tbody');
+    tbody.innerHTML = '';
+    var prevDate = null;
+    for (var i = 0; i < _previewData.length; i++) {
+      var curDate = _previewData[i].date;
+      (function(idx, showDate) {
+        var p = _previewData[idx];
+        var tr = document.createElement('tr');
+        if (p.unknown) tr.className = 'unknown-row';
+
+        var td2 = document.createElement('td');
+        var chipHtml = showDate ? '<span class="food-pv-date">' + p.date.slice(5).replace('-', '/') + '</span>' : '';
+        td2.innerHTML = chipHtml + esc(p.text);
+        var td2b = document.createElement('td');
+
+        var inp = document.createElement('input');
+        inp.type = 'number';
+        inp.min = '0';
+        inp.step = '1';
+        inp.value = p.unknown ? '' : p.kcal;
+        inp.placeholder = p.unknown ? '?' : '';
+        inp.addEventListener('change', function() {
+          var v = parseFloat(inp.value);
+          _previewData[idx].kcal = isNaN(v) ? 0 : Math.round(v);
+          _previewData[idx].source = 'manual';
+          _previewData[idx].unknown = false;
+          tr.className = '';
+          badgeCell.innerHTML = sourceBadge('manual');
+          updatePreviewTotals();
         });
+        td2b.appendChild(inp);
+
+        var td3 = document.createElement('td'); td3.textContent = p.unknown ? '-' : parseFloat(p.protein || 0).toFixed(1);
+        var badgeCell = document.createElement('td');
+        badgeCell.innerHTML = sourceBadge(p.source);
+        var tdX = document.createElement('td');
+        var xBtn = document.createElement('button');
+        xBtn.className = 'food-del-btn';
+        xBtn.textContent = '✕';
+        xBtn.addEventListener('click', function() {
+          _previewData[idx]._deleted = true;
+          tr.remove();
+          updatePreviewTotals();
+        });
+        tdX.appendChild(xBtn);
+
+        tr.appendChild(td2); tr.appendChild(td2b);
+        tr.appendChild(td3); tr.appendChild(badgeCell); tr.appendChild(tdX);
+        tbody.appendChild(tr);
+      })(i, curDate !== prevDate);
+      prevDate = curDate;
+    }
+    updatePreviewTotals();
+    document.getElementById('food-preview-wrap').style.display = '';
+  }
+
+  function updatePreviewTotals() {
+    var kcal = 0, protein = 0, saveCount = 0;
+    for (var i = 0; i < _previewData.length; i++) {
+      var p = _previewData[i];
+      if (p._deleted) continue;
+      if (!p.unknown || p.kcal > 0) {
+        kcal += p.kcal || 0;
+        protein += p.protein || 0;
+        saveCount++;
       }
     }
+    document.getElementById('food-preview-total').textContent =
+      '本段合计 ' + Math.round(kcal) + ' kcal / 蛋白 ' + protein.toFixed(1) + ' g';
+    document.getElementById('food-save-btn').textContent = '保存 ' + saveCount + ' 项';
+  }
 
-    function submitFood() {
-      var meal = document.getElementById('food-meal').value;
-      var text = document.getElementById('food-input').value.trim();
-      var btn = document.getElementById('food-submit');
-      if (!text) return;
-      btn.disabled = true;
-      btn.textContent = '記録中…';
-      var today = new Date().toLocaleDateString('sv-SE');
-      fetch('/api/food-log', {
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  async function loadItems(date) {
+    try {
+      var r = await fetch('/api/food-log?date=' + date);
+      if (r.ok) {
+        var data = await r.json();
+        if (data.success) renderItemsTable(data.items || [], date);
+      }
+    } catch {}
+  }
+
+  async function loadFoodData() {
+    var today = foodTodayJST();
+    try {
+      var r = await fetch('/api/food-log?date=' + today);
+      if (r.ok) {
+        var data = await r.json();
+        if (data.success) {
+          _foodToday = data.today;
+          renderOverview(data.today, data.comment);
+        }
+      }
+    } catch {}
+    var selectedDate = document.getElementById('food-items-date').value || today;
+    await loadItems(selectedDate);
+    try {
+      var r2 = await fetch('/api/food-analysis?date=' + today);
+      if (r2.ok) {
+        var d2 = await r2.json();
+        if (d2.success) renderAICard(d2.analysis);
+      }
+    } catch {}
+    try {
+      var r3 = await fetch('/api/food-log?days=7');
+      if (r3.ok) {
+        var d3 = await r3.json();
+        if (d3.success) renderWeekTable(d3.days);
+      }
+    } catch {}
+  }
+
+  window.foodParse = async function() {
+    var raw = document.getElementById('food-bulk').value.trim();
+    if (!raw) return;
+    var entries = parseBulkText(raw);
+    if (!entries.length) {
+      var hasDateBlock = /📅/.test(raw) || /空腹\d/.test(raw);
+      document.getElementById('food-rule-comment').textContent = hasDateBlock
+        ? '日期块下面没有食物条目'
+        : '没有找到日期块（需要像 📅11/8: 这样的行）';
+      return;
+    }
+    var btn = document.getElementById('food-parse-btn');
+    btn.disabled = true; btn.textContent = '解析中…';
+    try {
+      var r = await fetch('/api/food-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entries: entries, dryRun: true, ai: true }),
+      });
+      if (!r.ok) {
+        var err = await r.json().catch(function() { return {}; });
+        throw new Error(err.error || '解析失败');
+      }
+      var data = await r.json();
+      if (!data.success) throw new Error(data.error || '解析失败');
+      renderPreviewTable(data.preview || []);
+    } catch (e) {
+      document.getElementById('food-rule-comment').textContent = '解析失败：' + e.message;
+    } finally {
+      btn.disabled = false; btn.textContent = '解析';
+    }
+  };
+
+  window.foodSave = async function() {
+    if (!_previewData.length) return;
+    var toSave = _previewData.filter(function(p) { return !p._deleted && (!p.unknown || p.kcal > 0); });
+    if (!toSave.length) return;
+    var btn = document.getElementById('food-save-btn');
+    btn.disabled = true; btn.textContent = '保存中…';
+    try {
+      var r = await fetch('/api/food-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entries: toSave, dryRun: false }),
+      });
+      if (!r.ok) {
+        var err = await r.json().catch(function() { return {}; });
+        throw new Error(err.error || '保存失败');
+      }
+      var data = await r.json();
+      if (!data.success) throw new Error(data.error || '保存失败');
+      document.getElementById('food-bulk').value = '';
+      document.getElementById('food-preview-wrap').style.display = 'none';
+      _previewData = [];
+      await loadFoodData();
+      var totalUnknown = 0;
+      if (data.totals) {
+        Object.values(data.totals).forEach(function(t) { totalUnknown += (t.unknownCount || 0); });
+      }
+      var today = foodTodayJST();
+      var pastDates = [];
+      toSave.forEach(function(p) {
+        if (p.date !== today && pastDates.indexOf(p.date) < 0) pastDates.push(p.date);
+      });
+      pastDates.sort();
+      var baseCount = '已保存 ' + data.count + ' 项';
+      if (pastDates.length > 0) {
+        var firstPast = pastDates[0].slice(5).replace('-', '/');
+        baseCount += '（含 ' + firstPast + ' 等过去日期，今日概览不变）';
+      }
+      var saveMsg;
+      if (totalUnknown > 0) {
+        saveMsg = baseCount + '（⚠️ ' + totalUnknown + ' 项未识别，未计入总量）';
+        if (data.skipped > 0) saveMsg += '，已存在 ' + data.skipped + ' 项，跳过';
+      } else if (data.skipped > 0) {
+        saveMsg = baseCount + '，已存在 ' + data.skipped + ' 项，跳过';
+      } else {
+        saveMsg = baseCount;
+      }
+      document.getElementById('food-rule-comment').textContent = saveMsg;
+      fetch('/api/food-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: today, force: false }),
+      }).then(function(r2) {
+        if (r2.ok) return r2.json();
+      }).then(function(d) {
+        if (d && d.success) renderAICard(d.analysis);
+      }).catch(function() {});
+    } catch (e) {
+      document.getElementById('food-rule-comment').textContent = '保存失败：' + e.message;
+    } finally {
+      btn.disabled = false; btn.textContent = '保存';
+    }
+  };
+
+  window.foodGenerateAI = async function(force) {
+    var today = foodTodayJST();
+    var el = document.getElementById('food-ai-content');
+    var origHtml = el.innerHTML;
+    el.innerHTML = '<span style="color:#64748b;font-size:14px;">分析中…</span>';
+    try {
+      var r = await fetch('/api/food-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: today, force: !!force }),
+      });
+      if (!r.ok) throw new Error('API error');
+      var data = await r.json();
+      if (data.success) {
+        renderAICard(data.analysis);
+      } else {
+        el.innerHTML = origHtml;
+      }
+    } catch {
+      el.innerHTML = origHtml;
+    }
+  };
+
+  window.foodSingleSubmit = async function() {
+    var meal = document.getElementById('food-single-meal').value;
+    var text = document.getElementById('food-single-text').value.trim();
+    if (!text) return;
+    var btn = document.getElementById('food-single-btn');
+    btn.disabled = true; btn.textContent = '记录中…';
+    var today = foodTodayJST();
+    try {
+      var r = await fetch('/api/food-log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ date: today, meal: meal, text: text }),
-      })
-      .then(function(r) {
-        if (!r.ok) throw new Error('API_UNAVAILABLE');
-        return r.json().catch(function() { throw new Error('API_UNAVAILABLE'); });
-      })
-      .then(function(data) {
-        if (data.success) {
-          document.getElementById('food-input').value = '';
-          renderFoodUI(data.today, data.comment, null);
-          // prepend row to table
-          var tbody = document.querySelector('#food-table tbody');
-          var tr = document.createElement('tr');
-          tr.innerHTML = '<td>' + meal + '</td><td>' + text + '</td><td>' + Math.round(data.entry.kcal) + '</td><td>' + parseFloat(data.entry.protein).toFixed(1) + '</td>';
-          tbody.insertBefore(tr, tbody.firstChild);
-        } else {
-          document.getElementById('food-comment').textContent = '記録できませんでした: ' + (data.error || 'エラー');
-        }
-      })
-      .catch(function(err) {
-        document.getElementById('food-comment').textContent = err.message === 'API_UNAVAILABLE'
-          ? '記録できませんでした（Vercel 版でのみ動作します）'
-          : '記録できませんでした（' + err.message + '）';
-      })
-      .finally(function() {
-        btn.disabled = false;
-        btn.textContent = '記録';
       });
+      if (!r.ok) {
+        var err = await r.json().catch(function() { return {}; });
+        throw new Error(err.error || '记录失败');
+      }
+      var data = await r.json();
+      if (!data.success) throw new Error(data.error || '记录失败');
+      document.getElementById('food-single-text').value = '';
+      await loadFoodData();
+    } catch (e) {
+      document.getElementById('food-rule-comment').textContent = '记录失败：' + e.message;
+    } finally {
+      btn.disabled = false; btn.textContent = '记录';
     }
+  };
 
-    function loadFood() {
-      var today = new Date().toLocaleDateString('sv-SE');
-      fetch('/api/food-log?date=' + today)
-      .then(function(r) {
-        if (!r.ok) throw new Error(r.status.toString());
-        return r.json();
-      })
-      .then(function(data) {
-        if (data.success) renderFoodUI(data.today, data.comment, data.items);
-      })
-      .catch(function() {
-        document.getElementById('food-comment').textContent = 'この環境では食事記録は使えません（Vercel 版でのみ動作します）';
-      });
-    }
+  function handleItemDelete(e) {
+    var btn = e.currentTarget;
+    var date = btn.dataset.date;
+    var meal = btn.dataset.meal;
+    var text = btn.dataset.text;
+    if (!confirm('删除「' + text + '」这一项？')) return;
+    btn.disabled = true;
+    fetch('/api/food-log', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date: date, meal: meal, text: text }),
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) loadItems(document.getElementById('food-items-date').value || foodTodayJST());
+    })
+    .catch(function() { btn.disabled = false; });
+  }
 
-    document.addEventListener('DOMContentLoaded', loadFood);
-
-    // ---- まとめ貼り付け ----
-
-    function parseBulkText(raw) {
-      var year = new Date().getFullYear();
-      var currentMonth = new Date().getMonth() + 1;
-      var entries = [];
-      var currentDate = null;
-      var lines = raw.split('\n');
-      for (var i = 0; i < lines.length; i++) {
-        var line = lines[i].trim();
-        if (!line || line.startsWith('#')) continue;
-        // date block: contains 📅 or 空腹
-        if (/📅/.test(line) || /空腹/.test(line)) {
-          var dm = line.match(/(\d{1,2})\/(\d{1,2})/);
-          if (dm) {
-            var m = parseInt(dm[1], 10);
-            var d = parseInt(dm[2], 10);
-            var y = year;
-            if (m > currentMonth) y = year - 1;
-            currentDate = y + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+  function parseBulkText(raw) {
+    var year = new Date().getFullYear();
+    var currentMonth = new Date().getMonth() + 1;
+    var entries = [];
+    var currentDate = null;
+    var lines = raw.split('\n');
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line || line.charAt(0) === '#') continue;
+      if (/📅/.test(line) || /空腹/.test(line)) {
+        var dm = line.match(/(\d{1,2})\/(\d{1,2})/);
+        if (dm) {
+          var m = parseInt(dm[1], 10);
+          var d = parseInt(dm[2], 10);
+          var y = year;
+          if (m > currentMonth) y = year - 1;
+          currentDate = y + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+          var remainder = line
+            .replace(/📅/, '')
+            .replace(/\d{1,2}\/\d{1,2}/, '')
+            .replace(/空腹\d+(\.\d+)?/, '')
+            .replace(/\p{Extended_Pictographic}/gu, '')
+            .replace(/^[\s:：、，,]+|[\s:：、，,]+$/g, '')
+            .trim();
+          if (remainder) {
+            var rParts = remainder.split(/[、，,；;]+/);
+            for (var k = 0; k < rParts.length; k++) {
+              var rp = rParts[k].trim();
+              if (rp) entries.push({ date: currentDate, meal: '一括', text: rp });
+            }
           }
-          continue;
         }
-        if (!currentDate) continue;
-        // split by delimiters
-        var parts = line.split(/[、，,；;]+/);
-        for (var j = 0; j < parts.length; j++) {
-          var p = parts[j].trim();
-          if (p) entries.push({ date: currentDate, meal: '一括', text: p });
+        continue;
+      }
+      if (!currentDate) continue;
+      var parts = line.split(/[、，,；;]+/);
+      for (var j = 0; j < parts.length; j++) {
+        var p = parts[j].trim();
+        if (p) entries.push({ date: currentDate, meal: '一括', text: p });
+      }
+    }
+    return entries;
+  }
+
+  document.addEventListener('DOMContentLoaded', async function() {
+    var ok = false;
+    try {
+      var controller = new AbortController();
+      var timer = setTimeout(function() { controller.abort(); }, 3000);
+      var r = await fetch('/api/health', { signal: controller.signal });
+      clearTimeout(timer);
+      ok = r.ok;
+    } catch {}
+
+    if (!ok) {
+      document.getElementById('food-unavail-banner').classList.remove('is-hidden');
+      return;
+    }
+
+    document.querySelectorAll('.food-card').forEach(function(c) { c.classList.remove('is-hidden'); });
+    var today2 = foodTodayJST();
+    var di = document.getElementById('food-items-date');
+    di.value = today2;
+    di.max = today2;
+    await loadFoodData();
+    di.addEventListener('change', async function() {
+      var date = di.value;
+      if (!date) return;
+      var t = foodTodayJST();
+      document.getElementById('food-items-title').textContent = date === t ? '明细' : '明细 · ' + date.slice(5).replace('-', '/');
+      try {
+        var r = await fetch('/api/food-log?date=' + date);
+        if (r.ok) {
+          var data = await r.json();
+          if (data.success) renderItemsTable(data.items || [], date);
         }
-      }
-      return entries;
-    }
-
-    var _bulkPreviewData = null;
-
-    function bulkPreview() {
-      var raw = document.getElementById('food-bulk').value;
-      var entries = parseBulkText(raw);
-      if (!entries.length) {
-        document.getElementById('food-comment').textContent = '日付ブロック（📅11/8:）が見つかりませんでした';
-        return;
-      }
-      var btn = document.getElementById('food-bulk-preview');
-      btn.disabled = true; btn.textContent = '解析中…';
-      fetch('/api/food-log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entries: entries, dryRun: true }),
-      })
-      .then(function(r) {
-        if (!r.ok) return r.json().then(function(d) { throw new Error(d.error || 'API_UNAVAILABLE'); });
-        return r.json().catch(function() { throw new Error('API_UNAVAILABLE'); });
-      })
-      .then(function(data) {
-        if (!data.success) throw new Error(data.error || 'エラー');
-        _bulkPreviewData = data.preview;
-        var tbody = document.querySelector('#food-preview-table tbody');
-        tbody.innerHTML = '';
-        (data.preview || []).forEach(function(p) {
-          var tr = document.createElement('tr');
-          if (p.unknown) tr.className = 'unknown-row';
-          tr.innerHTML = '<td>' + p.date + '</td><td>' + p.text + '</td><td>' + (p.unknown ? '-' : Math.round(p.kcal)) + '</td><td>' + (p.unknown ? '-' : parseFloat(p.protein).toFixed(1)) + '</td><td>' + (p.unknown ? '⚠️未認識' : '') + '</td>';
-          tbody.appendChild(tr);
-        });
-        document.getElementById('food-preview-wrap').style.display = 'block';
-        document.getElementById('food-bulk-save').style.display = 'block';
-      })
-      .catch(function(err) {
-        document.getElementById('food-comment').textContent = err.message === 'API_UNAVAILABLE'
-          ? 'プレビューできませんでした（Vercel 版でのみ動作します）'
-          : 'プレビューできませんでした（' + err.message + '）';
-      })
-      .finally(function() { btn.disabled = false; btn.textContent = 'プレビュー'; });
-    }
-
-    function bulkSave() {
-      if (!_bulkPreviewData) return;
-      var raw = document.getElementById('food-bulk').value;
-      var entries = parseBulkText(raw);
-      if (!entries.length) return;
-      var btn = document.getElementById('food-bulk-save');
-      btn.disabled = true; btn.textContent = '保存中…';
-      fetch('/api/food-log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entries: entries, dryRun: false }),
-      })
-      .then(function(r) {
-        if (!r.ok) return r.json().then(function(d) { throw new Error(d.error || 'API_UNAVAILABLE'); });
-        return r.json().catch(function() { throw new Error('API_UNAVAILABLE'); });
-      })
-      .then(function(data) {
-        if (!data.success) throw new Error(data.error || 'エラー');
-        document.getElementById('food-bulk').value = '';
-        document.getElementById('food-preview-wrap').style.display = 'none';
-        btn.style.display = 'none';
-        _bulkPreviewData = null;
-        // reload today's summary
-        loadFood();
-      })
-      .catch(function(err) {
-        document.getElementById('food-comment').textContent = err.message === 'API_UNAVAILABLE'
-          ? '保存できませんでした（Vercel 版でのみ動作します）'
-          : '保存できませんでした（' + err.message + '）';
-      })
-      .finally(function() { btn.disabled = false; btn.textContent = 'この内容で保存'; });
-    }
+      } catch {}
+    });
+  });
+})();
 </script>
 
     
 
     <details id="weight-detail" style="margin-top:16px;background:#1e293b;border-radius:14px;border:1px solid #334155;margin-bottom:16px;">
       <summary style="cursor:pointer;padding:14px 18px;font-size:15px;font-weight:600;color:#cbd5e1;list-style:none;display:flex;align-items:center;gap:6px;">
-        📋 记录明细（<span id="weight-detail-count">140</span>件）
+        📋 记录明细（<span id="weight-detail-count">141</span>件）
       </summary>
       <div class="table-wrap" style="padding:0 4px 4px;">
         <table>
           <thead>
             <tr><th>日期</th><th>体重</th><th>备注</th></tr>
           </thead>
-          <tbody><tr><td>2026-11-25</td><td>54.1</td><td class='note'></td></tr><tr><td>2026-11-24</td><td>53.8</td><td class='note'></td></tr><tr><td>2026-11-23</td><td>54.5</td><td class='note'></td></tr><tr><td>2026-11-22</td><td>54.55</td><td class='note'></td></tr><tr><td>2026-11-21</td><td>54.5</td><td class='note'></td></tr><tr><td>2026-11-19</td><td>54.4</td><td class='note'></td></tr><tr><td>2026-11-18</td><td>54.45</td><td class='note'></td></tr><tr><td>2026-11-17</td><td>54.2</td><td class='note'></td></tr><tr><td>2026-11-16</td><td>54.25</td><td class='note'></td></tr><tr><td>2026-11-15</td><td>53.95</td><td class='note'></td></tr><tr><td>2026-11-14</td><td>54.35</td><td class='note'></td></tr><tr><td>2026-11-13</td><td>54.2</td><td class='note'></td></tr><tr><td>2026-11-12</td><td>54.35</td><td class='note'></td></tr><tr><td>2026-11-11</td><td>54.4</td><td class='note'></td></tr><tr><td>2026-11-10</td><td>54.7</td><td class='note'></td></tr><tr><td>2026-11-09</td><td>54.5</td><td class='note'></td></tr><tr><td>2026-11-08</td><td>54.5</td><td class='note'></td></tr><tr><td>2026-11-07</td><td>55.5</td><td class='note'></td></tr><tr><td>2026-11-06</td><td>55.5</td><td class='note'></td></tr><tr><td>2026-11-05</td><td>55.5</td><td class='note'></td></tr><tr><td>2026-11-04</td><td>55.5</td><td class='note'></td></tr><tr><td>2026-11-03</td><td>55.5</td><td class='note'></td></tr><tr><td>2026-11-02</td><td>55.67</td><td class='note'></td></tr><tr><td>2026-11-01</td><td>55.6</td><td class='note'></td></tr><tr><td>2026-10-29</td><td>56.2</td><td class='note'></td></tr><tr><td>2026-10-28</td><td>56.2</td><td class='note'></td></tr><tr><td>2026-10-27</td><td>55.9</td><td class='note'></td></tr><tr><td>2026-10-26</td><td>55.85</td><td class='note'></td></tr><tr><td>2026-10-25</td><td>56.1</td><td class='note'></td></tr><tr><td>2026-10-24</td><td>56.65</td><td class='note'></td></tr><tr><td>2026-10-23</td><td>56.9</td><td class='note'></td></tr><tr><td>2026-10-22</td><td>56.9</td><td class='note'></td></tr><tr><td>2026-10-21</td><td>56.9</td><td class='note'></td></tr><tr><td>2026-10-20</td><td>57.0</td><td class='note'></td></tr><tr><td>2026-10-18</td><td>58.2</td><td class='note'></td></tr><tr><td>2026-10-17</td><td>58.6</td><td class='note'></td></tr><tr><td>2026-10-15</td><td>58.6</td><td class='note'></td></tr><tr><td>2026-10-11</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-10-09</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-10-06</td><td>59.3</td><td class='note'></td></tr><tr><td>2026-10-05</td><td>58.9</td><td class='note'></td></tr><tr><td>2026-10-04</td><td>58.8</td><td class='note'></td></tr><tr><td>2026-10-02</td><td>58.65</td><td class='note'></td></tr><tr><td>2026-08-26</td><td>59.55</td><td class='note'></td></tr><tr><td>2026-08-25</td><td>59.55</td><td class='note'></td></tr><tr><td>2026-08-17</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-08-11</td><td>59.3</td><td class='note'></td></tr><tr><td>2026-08-10</td><td>59.3</td><td class='note'></td></tr><tr><td>2026-07-12</td><td>59.85</td><td class='note'></td></tr><tr><td>2026-07-03</td><td>59.1</td><td class='note'></td></tr><tr><td>2026-07-02</td><td>58.85</td><td class='note'></td></tr><tr><td>2026-06-30</td><td>58.7</td><td class='note'></td></tr><tr><td>2026-06-29</td><td>58.6</td><td class='note'></td></tr><tr><td>2026-06-27</td><td>58.95</td><td class='note'></td></tr><tr><td>2026-06-23</td><td>59.65</td><td class='note'></td></tr><tr><td>2026-06-20</td><td>59.05</td><td class='note'></td></tr><tr><td>2026-06-19</td><td>58.75</td><td class='note'></td></tr><tr><td>2026-06-18</td><td>59.1</td><td class='note'></td></tr><tr><td>2026-06-10</td><td>58.6</td><td class='note'></td></tr><tr><td>2026-06-09</td><td>58.0</td><td class='note'></td></tr><tr><td>2026-06-08</td><td>58.2</td><td class='note'></td></tr><tr><td>2026-06-07</td><td>58.3</td><td class='note'></td></tr><tr><td>2026-06-06</td><td>58.6</td><td class='note'></td></tr><tr><td>2026-06-05</td><td>58.8</td><td class='note'></td></tr><tr><td>2026-06-04</td><td>58.35</td><td class='note'></td></tr><tr><td>2026-06-03</td><td>58.8</td><td class='note'></td></tr><tr><td>2026-06-02</td><td>58.75</td><td class='note'></td></tr><tr><td>2026-06-01</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-05-31</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-05-30</td><td>59.25</td><td class='note'></td></tr><tr><td>2026-05-29</td><td>59.55</td><td class='note'></td></tr><tr><td>2026-05-28</td><td>59.7</td><td class='note'></td></tr><tr><td>2026-05-27</td><td>59.6</td><td class='note'></td></tr><tr><td>2026-05-26</td><td>59.9</td><td class='note'></td></tr><tr><td>2026-05-25</td><td>59.25</td><td class='note'></td></tr><tr><td>2026-05-24</td><td>60.0</td><td class='note'></td></tr><tr><td>2026-05-23</td><td>59.95</td><td class='note'></td></tr><tr><td>2026-05-22</td><td>59.6</td><td class='note'></td></tr><tr><td>2026-05-21</td><td>60.25</td><td class='note'></td></tr><tr><td>2026-05-20</td><td>60.0</td><td class='note'></td></tr><tr><td>2026-05-19</td><td>60.45</td><td class='note'></td></tr><tr><td>2026-05-18</td><td>59.8</td><td class='note'></td></tr><tr><td>2026-05-17</td><td>59.8</td><td class='note'></td></tr><tr><td>2026-05-16</td><td>60.25</td><td class='note'></td></tr><tr><td>2026-05-15</td><td>60.1</td><td class='note'></td></tr><tr><td>2026-05-14</td><td>60.2</td><td class='note'></td></tr><tr><td>2026-05-13</td><td>59.55</td><td class='note'></td></tr><tr><td>2026-05-12</td><td>59.8</td><td class='note'></td></tr><tr><td>2026-05-11</td><td>59.65</td><td class='note'></td></tr><tr><td>2026-05-10</td><td>59.75</td><td class='note'>早饭前</td></tr><tr><td>2026-05-09</td><td>60.0</td><td class='note'></td></tr><tr><td>2026-05-08</td><td>60.4</td><td class='note'></td></tr><tr><td>2026-04-28</td><td>59.7</td><td class='note'></td></tr><tr><td>2026-04-27</td><td>59.9</td><td class='note'></td></tr><tr><td>2026-04-26</td><td>59.4</td><td class='note'></td></tr><tr><td>2026-04-25</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-04-24</td><td>59.4</td><td class='note'></td></tr><tr><td>2026-04-23</td><td>59.9</td><td class='note'></td></tr><tr><td>2026-04-22</td><td>59.85</td><td class='note'></td></tr><tr><td>2026-04-21</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-04-20</td><td>58.9</td><td class='note'></td></tr><tr><td>2026-04-19</td><td>59.1</td><td class='note'></td></tr><tr><td>2026-04-18</td><td>58.75</td><td class='note'></td></tr><tr><td>2026-04-17</td><td>59.4</td><td class='note'></td></tr><tr><td>2026-04-16</td><td>58.85</td><td class='note'></td></tr><tr><td>2026-04-15</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-04-14</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-04-13</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-04-12</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-04-11</td><td>58.9</td><td class='note'></td></tr><tr><td>2026-04-10</td><td>59.1</td><td class='note'>59.11 (4.8-4.14)</td></tr><tr><td>2026-04-09</td><td>59.4</td><td class='note'></td></tr><tr><td>2026-04-08</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-04-07</td><td>59.7</td><td class='note'></td></tr><tr><td>2026-04-06</td><td>59.1</td><td class='note'></td></tr><tr><td>2026-04-05</td><td>59.7</td><td class='note'></td></tr><tr><td>2026-04-04</td><td>59.6</td><td class='note'></td></tr><tr><td>2026-04-03</td><td>58.9</td><td class='note'>59.2 (4.1-4.7)</td></tr><tr><td>2026-04-02</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-04-01</td><td>58.8</td><td class='note'></td></tr><tr><td>2026-03-30</td><td>58.9</td><td class='note'></td></tr><tr><td>2026-03-29</td><td>58.75</td><td class='note'></td></tr><tr><td>2026-03-28</td><td>58.75</td><td class='note'>58.8 (3.26-3.31)</td></tr><tr><td>2026-03-27</td><td>58.25</td><td class='note'></td></tr><tr><td>2026-03-26</td><td>59.4</td><td class='note'></td></tr><tr><td>2026-03-25</td><td>58.7</td><td class='note'></td></tr><tr><td>2026-03-24</td><td>59.25</td><td class='note'></td></tr><tr><td>2026-03-23</td><td>58.9</td><td class='note'>58.82 (3.21-3.25)</td></tr><tr><td>2026-03-22</td><td>58.4</td><td class='note'></td></tr><tr><td>2026-03-21</td><td>58.85</td><td class='note'></td></tr><tr><td>2026-03-20</td><td>59.15</td><td class='note'></td></tr><tr><td>2026-03-19</td><td>59.3</td><td class='note'></td></tr><tr><td>2026-03-18</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-03-17</td><td>59.2</td><td class='note'>59.07 (3.15-3.20)</td></tr><tr><td>2026-03-16</td><td>58.7</td><td class='note'></td></tr><tr><td>2026-03-15</td><td>57.95</td><td class='note'></td></tr><tr><td>2026-03-14</td><td>59.5</td><td class='note'></td></tr><tr><td>2026-03-13</td><td>59.2</td><td class='note'>59.19 (3.11-3.14)</td></tr><tr><td>2026-03-12</td><td>59.15</td><td class='note'></td></tr><tr><td>2026-03-11</td><td>59.55</td><td class='note'></td></tr></tbody>
+          <tbody><tr><td>2026-11-26</td><td>54.1</td><td class='note'>診断テスト</td></tr><tr><td>2026-11-25</td><td>54.1</td><td class='note'></td></tr><tr><td>2026-11-24</td><td>53.8</td><td class='note'></td></tr><tr><td>2026-11-23</td><td>54.5</td><td class='note'></td></tr><tr><td>2026-11-22</td><td>54.55</td><td class='note'></td></tr><tr><td>2026-11-21</td><td>54.5</td><td class='note'></td></tr><tr><td>2026-11-19</td><td>54.4</td><td class='note'></td></tr><tr><td>2026-11-18</td><td>54.45</td><td class='note'></td></tr><tr><td>2026-11-17</td><td>54.2</td><td class='note'></td></tr><tr><td>2026-11-16</td><td>54.25</td><td class='note'></td></tr><tr><td>2026-11-15</td><td>53.95</td><td class='note'></td></tr><tr><td>2026-11-14</td><td>54.35</td><td class='note'></td></tr><tr><td>2026-11-13</td><td>54.2</td><td class='note'></td></tr><tr><td>2026-11-12</td><td>54.35</td><td class='note'></td></tr><tr><td>2026-11-11</td><td>54.4</td><td class='note'></td></tr><tr><td>2026-11-10</td><td>54.7</td><td class='note'></td></tr><tr><td>2026-11-09</td><td>54.5</td><td class='note'></td></tr><tr><td>2026-11-08</td><td>54.5</td><td class='note'></td></tr><tr><td>2026-11-07</td><td>55.5</td><td class='note'></td></tr><tr><td>2026-11-06</td><td>55.5</td><td class='note'></td></tr><tr><td>2026-11-05</td><td>55.5</td><td class='note'></td></tr><tr><td>2026-11-04</td><td>55.5</td><td class='note'></td></tr><tr><td>2026-11-03</td><td>55.5</td><td class='note'></td></tr><tr><td>2026-11-02</td><td>55.67</td><td class='note'></td></tr><tr><td>2026-11-01</td><td>55.6</td><td class='note'></td></tr><tr><td>2026-10-29</td><td>56.2</td><td class='note'></td></tr><tr><td>2026-10-28</td><td>56.2</td><td class='note'></td></tr><tr><td>2026-10-27</td><td>55.9</td><td class='note'></td></tr><tr><td>2026-10-26</td><td>55.85</td><td class='note'></td></tr><tr><td>2026-10-25</td><td>56.1</td><td class='note'></td></tr><tr><td>2026-10-24</td><td>56.65</td><td class='note'></td></tr><tr><td>2026-10-23</td><td>56.9</td><td class='note'></td></tr><tr><td>2026-10-22</td><td>56.9</td><td class='note'></td></tr><tr><td>2026-10-21</td><td>56.9</td><td class='note'></td></tr><tr><td>2026-10-20</td><td>57.0</td><td class='note'></td></tr><tr><td>2026-10-18</td><td>58.2</td><td class='note'></td></tr><tr><td>2026-10-17</td><td>58.6</td><td class='note'></td></tr><tr><td>2026-10-15</td><td>58.6</td><td class='note'></td></tr><tr><td>2026-10-11</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-10-09</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-10-06</td><td>59.3</td><td class='note'></td></tr><tr><td>2026-10-05</td><td>58.9</td><td class='note'></td></tr><tr><td>2026-10-04</td><td>58.8</td><td class='note'></td></tr><tr><td>2026-10-02</td><td>58.65</td><td class='note'></td></tr><tr><td>2026-08-26</td><td>59.55</td><td class='note'></td></tr><tr><td>2026-08-25</td><td>59.55</td><td class='note'></td></tr><tr><td>2026-08-17</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-08-11</td><td>59.3</td><td class='note'></td></tr><tr><td>2026-08-10</td><td>59.3</td><td class='note'></td></tr><tr><td>2026-07-12</td><td>59.85</td><td class='note'></td></tr><tr><td>2026-07-03</td><td>59.1</td><td class='note'></td></tr><tr><td>2026-07-02</td><td>58.85</td><td class='note'></td></tr><tr><td>2026-06-30</td><td>58.7</td><td class='note'></td></tr><tr><td>2026-06-29</td><td>58.6</td><td class='note'></td></tr><tr><td>2026-06-27</td><td>58.95</td><td class='note'></td></tr><tr><td>2026-06-23</td><td>59.65</td><td class='note'></td></tr><tr><td>2026-06-20</td><td>59.05</td><td class='note'></td></tr><tr><td>2026-06-19</td><td>58.75</td><td class='note'></td></tr><tr><td>2026-06-18</td><td>59.1</td><td class='note'></td></tr><tr><td>2026-06-10</td><td>58.6</td><td class='note'></td></tr><tr><td>2026-06-09</td><td>58.0</td><td class='note'></td></tr><tr><td>2026-06-08</td><td>58.2</td><td class='note'></td></tr><tr><td>2026-06-07</td><td>58.3</td><td class='note'></td></tr><tr><td>2026-06-06</td><td>58.6</td><td class='note'></td></tr><tr><td>2026-06-05</td><td>58.8</td><td class='note'></td></tr><tr><td>2026-06-04</td><td>58.35</td><td class='note'></td></tr><tr><td>2026-06-03</td><td>58.8</td><td class='note'></td></tr><tr><td>2026-06-02</td><td>58.75</td><td class='note'></td></tr><tr><td>2026-06-01</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-05-31</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-05-30</td><td>59.25</td><td class='note'></td></tr><tr><td>2026-05-29</td><td>59.55</td><td class='note'></td></tr><tr><td>2026-05-28</td><td>59.7</td><td class='note'></td></tr><tr><td>2026-05-27</td><td>59.6</td><td class='note'></td></tr><tr><td>2026-05-26</td><td>59.9</td><td class='note'></td></tr><tr><td>2026-05-25</td><td>59.25</td><td class='note'></td></tr><tr><td>2026-05-24</td><td>60.0</td><td class='note'></td></tr><tr><td>2026-05-23</td><td>59.95</td><td class='note'></td></tr><tr><td>2026-05-22</td><td>59.6</td><td class='note'></td></tr><tr><td>2026-05-21</td><td>60.25</td><td class='note'></td></tr><tr><td>2026-05-20</td><td>60.0</td><td class='note'></td></tr><tr><td>2026-05-19</td><td>60.45</td><td class='note'></td></tr><tr><td>2026-05-18</td><td>59.8</td><td class='note'></td></tr><tr><td>2026-05-17</td><td>59.8</td><td class='note'></td></tr><tr><td>2026-05-16</td><td>60.25</td><td class='note'></td></tr><tr><td>2026-05-15</td><td>60.1</td><td class='note'></td></tr><tr><td>2026-05-14</td><td>60.2</td><td class='note'></td></tr><tr><td>2026-05-13</td><td>59.55</td><td class='note'></td></tr><tr><td>2026-05-12</td><td>59.8</td><td class='note'></td></tr><tr><td>2026-05-11</td><td>59.65</td><td class='note'></td></tr><tr><td>2026-05-10</td><td>59.75</td><td class='note'>早饭前</td></tr><tr><td>2026-05-09</td><td>60.0</td><td class='note'></td></tr><tr><td>2026-05-08</td><td>60.4</td><td class='note'></td></tr><tr><td>2026-04-28</td><td>59.7</td><td class='note'></td></tr><tr><td>2026-04-27</td><td>59.9</td><td class='note'></td></tr><tr><td>2026-04-26</td><td>59.4</td><td class='note'></td></tr><tr><td>2026-04-25</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-04-24</td><td>59.4</td><td class='note'></td></tr><tr><td>2026-04-23</td><td>59.9</td><td class='note'></td></tr><tr><td>2026-04-22</td><td>59.85</td><td class='note'></td></tr><tr><td>2026-04-21</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-04-20</td><td>58.9</td><td class='note'></td></tr><tr><td>2026-04-19</td><td>59.1</td><td class='note'></td></tr><tr><td>2026-04-18</td><td>58.75</td><td class='note'></td></tr><tr><td>2026-04-17</td><td>59.4</td><td class='note'></td></tr><tr><td>2026-04-16</td><td>58.85</td><td class='note'></td></tr><tr><td>2026-04-15</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-04-14</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-04-13</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-04-12</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-04-11</td><td>58.9</td><td class='note'></td></tr><tr><td>2026-04-10</td><td>59.1</td><td class='note'>59.11 (4.8-4.14)</td></tr><tr><td>2026-04-09</td><td>59.4</td><td class='note'></td></tr><tr><td>2026-04-08</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-04-07</td><td>59.7</td><td class='note'></td></tr><tr><td>2026-04-06</td><td>59.1</td><td class='note'></td></tr><tr><td>2026-04-05</td><td>59.7</td><td class='note'></td></tr><tr><td>2026-04-04</td><td>59.6</td><td class='note'></td></tr><tr><td>2026-04-03</td><td>58.9</td><td class='note'>59.2 (4.1-4.7)</td></tr><tr><td>2026-04-02</td><td>59.2</td><td class='note'></td></tr><tr><td>2026-04-01</td><td>58.8</td><td class='note'></td></tr><tr><td>2026-03-30</td><td>58.9</td><td class='note'></td></tr><tr><td>2026-03-29</td><td>58.75</td><td class='note'></td></tr><tr><td>2026-03-28</td><td>58.75</td><td class='note'>58.8 (3.26-3.31)</td></tr><tr><td>2026-03-27</td><td>58.25</td><td class='note'></td></tr><tr><td>2026-03-26</td><td>59.4</td><td class='note'></td></tr><tr><td>2026-03-25</td><td>58.7</td><td class='note'></td></tr><tr><td>2026-03-24</td><td>59.25</td><td class='note'></td></tr><tr><td>2026-03-23</td><td>58.9</td><td class='note'>58.82 (3.21-3.25)</td></tr><tr><td>2026-03-22</td><td>58.4</td><td class='note'></td></tr><tr><td>2026-03-21</td><td>58.85</td><td class='note'></td></tr><tr><td>2026-03-20</td><td>59.15</td><td class='note'></td></tr><tr><td>2026-03-19</td><td>59.3</td><td class='note'></td></tr><tr><td>2026-03-18</td><td>59.0</td><td class='note'></td></tr><tr><td>2026-03-17</td><td>59.2</td><td class='note'>59.07 (3.15-3.20)</td></tr><tr><td>2026-03-16</td><td>58.7</td><td class='note'></td></tr><tr><td>2026-03-15</td><td>57.95</td><td class='note'></td></tr><tr><td>2026-03-14</td><td>59.5</td><td class='note'></td></tr><tr><td>2026-03-13</td><td>59.2</td><td class='note'>59.19 (3.11-3.14)</td></tr><tr><td>2026-03-12</td><td>59.15</td><td class='note'></td></tr><tr><td>2026-03-11</td><td>59.55</td><td class='note'></td></tr></tbody>
         </table>
       </div>
     </details>
@@ -550,7 +950,7 @@
   </div>
 
   <script>
-    const chartData = {"labels": ["03-11", "03-12", "03-13", "03-14", "03-15", "03-16", "03-17", "03-18", "03-19", "03-20", "03-21", "03-22", "03-23", "03-24", "03-25", "03-26", "03-27", "03-28", "03-29", "03-30", "04-01", "04-02", "04-03", "04-04", "04-05", "04-06", "04-07", "04-08", "04-09", "04-10", "04-11", "04-12", "04-13", "04-14", "04-15", "04-16", "04-17", "04-18", "04-19", "04-20", "04-21", "04-22", "04-23", "04-24", "04-25", "04-26", "04-27", "04-28", "05-08", "05-09", "05-10", "05-11", "05-12", "05-13", "05-14", "05-15", "05-16", "05-17", "05-18", "05-19", "05-20", "05-21", "05-22", "05-23", "05-24", "05-25", "05-26", "05-27", "05-28", "05-29", "05-30", "05-31", "06-01", "06-02", "06-03", "06-04", "06-05", "06-06", "06-07", "06-08", "06-09", "06-10", "06-18", "06-19", "06-20", "06-23", "06-27", "06-29", "06-30", "07-02", "07-03", "07-12", "08-10", "08-11", "08-17", "08-25", "08-26", "10-02", "10-04", "10-05", "10-06", "10-09", "10-11", "10-15", "10-17", "10-18", "10-20", "10-21", "10-22", "10-23", "10-24", "10-25", "10-26", "10-27", "10-28", "10-29", "11-01", "11-02", "11-03", "11-04", "11-05", "11-06", "11-07", "11-08", "11-09", "11-10", "11-11", "11-12", "11-13", "11-14", "11-15", "11-16", "11-17", "11-18", "11-19", "11-21", "11-22", "11-23", "11-24", "11-25"], "weights": [59.55, 59.15, 59.2, 59.5, 57.95, 58.7, 59.2, 59.0, 59.3, 59.15, 58.85, 58.4, 58.9, 59.25, 58.7, 59.4, 58.25, 58.75, 58.75, 58.9, 58.8, 59.2, 58.9, 59.6, 59.7, 59.1, 59.7, 59.2, 59.4, 59.1, 58.9, 59.0, 59.0, 59.2, 59.0, 58.85, 59.4, 58.75, 59.1, 58.9, 59.2, 59.85, 59.9, 59.4, 59.2, 59.4, 59.9, 59.7, 60.4, 60.0, 59.75, 59.65, 59.8, 59.55, 60.2, 60.1, 60.25, 59.8, 59.8, 60.45, 60.0, 60.25, 59.6, 59.95, 60.0, 59.25, 59.9, 59.6, 59.7, 59.55, 59.25, 59.0, 59.2, 58.75, 58.8, 58.35, 58.8, 58.6, 58.3, 58.2, 58.0, 58.6, 59.1, 58.75, 59.05, 59.65, 58.95, 58.6, 58.7, 58.85, 59.1, 59.85, 59.3, 59.3, 59.2, 59.55, 59.55, 58.65, 58.8, 58.9, 59.3, 59.0, 59.0, 58.6, 58.6, 58.2, 57.0, 56.9, 56.9, 56.9, 56.65, 56.1, 55.85, 55.9, 56.2, 56.2, 55.6, 55.67, 55.5, 55.5, 55.5, 55.5, 55.5, 54.5, 54.5, 54.7, 54.4, 54.35, 54.2, 54.35, 53.95, 54.25, 54.2, 54.45, 54.4, 54.5, 54.55, 54.5, 53.8, 54.1], "ma7": [null, null, null, null, null, null, 59.04, 58.96, 58.98, 58.97, 58.88, 58.94, 58.97, 58.98, 58.94, 58.95, 58.82, 58.81, 58.86, 58.86, 58.79, 58.86, 58.79, 58.99, 59.12, 59.17, 59.29, 59.34, 59.37, 59.4, 59.3, 59.2, 59.19, 59.11, 59.09, 59.01, 59.05, 59.03, 59.04, 59.03, 59.03, 59.15, 59.3, 59.3, 59.36, 59.41, 59.55, 59.62, 59.7, 59.71, 59.76, 59.83, 59.89, 59.84, 59.91, 59.86, 59.9, 59.91, 59.93, 60.02, 60.09, 60.09, 60.02, 59.98, 60.01, 59.93, 59.85, 59.79, 59.71, 59.71, 59.61, 59.46, 59.46, 59.29, 59.18, 58.99, 58.88, 58.79, 58.69, 58.54, 58.44, 58.41, 58.51, 58.51, 58.57, 58.76, 58.87, 58.96, 58.97, 58.94, 58.99, 59.1, 59.05, 59.1, 59.19, 59.31, 59.41, 59.34, 59.19, 59.14, 59.14, 59.11, 59.03, 58.89, 58.89, 58.8, 58.53, 58.19, 57.89, 57.59, 57.31, 56.95, 56.61, 56.46, 56.36, 56.26, 56.07, 55.93, 55.85, 55.8, 55.74, 55.64, 55.54, 55.38, 55.21, 55.1, 54.94, 54.78, 54.59, 54.43, 54.35, 54.31, 54.24, 54.25, 54.26, 54.3, 54.33, 54.41, 54.34, 54.33], "target": 45, "maxIdx": 59, "maxVal": 60.45, "minIdx": 138, "minVal": 53.8, "rawDates": ["2026-03-11", "2026-03-12", "2026-03-13", "2026-03-14", "2026-03-15", "2026-03-16", "2026-03-17", "2026-03-18", "2026-03-19", "2026-03-20", "2026-03-21", "2026-03-22", "2026-03-23", "2026-03-24", "2026-03-25", "2026-03-26", "2026-03-27", "2026-03-28", "2026-03-29", "2026-03-30", "2026-04-01", "2026-04-02", "2026-04-03", "2026-04-04", "2026-04-05", "2026-04-06", "2026-04-07", "2026-04-08", "2026-04-09", "2026-04-10", "2026-04-11", "2026-04-12", "2026-04-13", "2026-04-14", "2026-04-15", "2026-04-16", "2026-04-17", "2026-04-18", "2026-04-19", "2026-04-20", "2026-04-21", "2026-04-22", "2026-04-23", "2026-04-24", "2026-04-25", "2026-04-26", "2026-04-27", "2026-04-28", "2026-05-08", "2026-05-09", "2026-05-10", "2026-05-11", "2026-05-12", "2026-05-13", "2026-05-14", "2026-05-15", "2026-05-16", "2026-05-17", "2026-05-18", "2026-05-19", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-23", "2026-05-24", "2026-05-25", "2026-05-26", "2026-05-27", "2026-05-28", "2026-05-29", "2026-05-30", "2026-05-31", "2026-06-01", "2026-06-02", "2026-06-03", "2026-06-04", "2026-06-05", "2026-06-06", "2026-06-07", "2026-06-08", "2026-06-09", "2026-06-10", "2026-06-18", "2026-06-19", "2026-06-20", "2026-06-23", "2026-06-27", "2026-06-29", "2026-06-30", "2026-07-02", "2026-07-03", "2026-07-12", "2026-08-10", "2026-08-11", "2026-08-17", "2026-08-25", "2026-08-26", "2026-10-02", "2026-10-04", "2026-10-05", "2026-10-06", "2026-10-09", "2026-10-11", "2026-10-15", "2026-10-17", "2026-10-18", "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23", "2026-10-24", "2026-10-25", "2026-10-26", "2026-10-27", "2026-10-28", "2026-10-29", "2026-11-01", "2026-11-02", "2026-11-03", "2026-11-04", "2026-11-05", "2026-11-06", "2026-11-07", "2026-11-08", "2026-11-09", "2026-11-10", "2026-11-11", "2026-11-12", "2026-11-13", "2026-11-14", "2026-11-15", "2026-11-16", "2026-11-17", "2026-11-18", "2026-11-19", "2026-11-21", "2026-11-22", "2026-11-23", "2026-11-24", "2026-11-25"]};
+    const chartData = {"labels": ["03-11", "03-12", "03-13", "03-14", "03-15", "03-16", "03-17", "03-18", "03-19", "03-20", "03-21", "03-22", "03-23", "03-24", "03-25", "03-26", "03-27", "03-28", "03-29", "03-30", "04-01", "04-02", "04-03", "04-04", "04-05", "04-06", "04-07", "04-08", "04-09", "04-10", "04-11", "04-12", "04-13", "04-14", "04-15", "04-16", "04-17", "04-18", "04-19", "04-20", "04-21", "04-22", "04-23", "04-24", "04-25", "04-26", "04-27", "04-28", "05-08", "05-09", "05-10", "05-11", "05-12", "05-13", "05-14", "05-15", "05-16", "05-17", "05-18", "05-19", "05-20", "05-21", "05-22", "05-23", "05-24", "05-25", "05-26", "05-27", "05-28", "05-29", "05-30", "05-31", "06-01", "06-02", "06-03", "06-04", "06-05", "06-06", "06-07", "06-08", "06-09", "06-10", "06-18", "06-19", "06-20", "06-23", "06-27", "06-29", "06-30", "07-02", "07-03", "07-12", "08-10", "08-11", "08-17", "08-25", "08-26", "10-02", "10-04", "10-05", "10-06", "10-09", "10-11", "10-15", "10-17", "10-18", "10-20", "10-21", "10-22", "10-23", "10-24", "10-25", "10-26", "10-27", "10-28", "10-29", "11-01", "11-02", "11-03", "11-04", "11-05", "11-06", "11-07", "11-08", "11-09", "11-10", "11-11", "11-12", "11-13", "11-14", "11-15", "11-16", "11-17", "11-18", "11-19", "11-21", "11-22", "11-23", "11-24", "11-25", "11-26"], "weights": [59.55, 59.15, 59.2, 59.5, 57.95, 58.7, 59.2, 59.0, 59.3, 59.15, 58.85, 58.4, 58.9, 59.25, 58.7, 59.4, 58.25, 58.75, 58.75, 58.9, 58.8, 59.2, 58.9, 59.6, 59.7, 59.1, 59.7, 59.2, 59.4, 59.1, 58.9, 59.0, 59.0, 59.2, 59.0, 58.85, 59.4, 58.75, 59.1, 58.9, 59.2, 59.85, 59.9, 59.4, 59.2, 59.4, 59.9, 59.7, 60.4, 60.0, 59.75, 59.65, 59.8, 59.55, 60.2, 60.1, 60.25, 59.8, 59.8, 60.45, 60.0, 60.25, 59.6, 59.95, 60.0, 59.25, 59.9, 59.6, 59.7, 59.55, 59.25, 59.0, 59.2, 58.75, 58.8, 58.35, 58.8, 58.6, 58.3, 58.2, 58.0, 58.6, 59.1, 58.75, 59.05, 59.65, 58.95, 58.6, 58.7, 58.85, 59.1, 59.85, 59.3, 59.3, 59.2, 59.55, 59.55, 58.65, 58.8, 58.9, 59.3, 59.0, 59.0, 58.6, 58.6, 58.2, 57.0, 56.9, 56.9, 56.9, 56.65, 56.1, 55.85, 55.9, 56.2, 56.2, 55.6, 55.67, 55.5, 55.5, 55.5, 55.5, 55.5, 54.5, 54.5, 54.7, 54.4, 54.35, 54.2, 54.35, 53.95, 54.25, 54.2, 54.45, 54.4, 54.5, 54.55, 54.5, 53.8, 54.1, 54.1], "ma7": [null, null, null, null, null, null, 59.04, 58.96, 58.98, 58.97, 58.88, 58.94, 58.97, 58.98, 58.94, 58.95, 58.82, 58.81, 58.86, 58.86, 58.79, 58.86, 58.79, 58.99, 59.12, 59.17, 59.29, 59.34, 59.37, 59.4, 59.3, 59.2, 59.19, 59.11, 59.09, 59.01, 59.05, 59.03, 59.04, 59.03, 59.03, 59.15, 59.3, 59.3, 59.36, 59.41, 59.55, 59.62, 59.7, 59.71, 59.76, 59.83, 59.89, 59.84, 59.91, 59.86, 59.9, 59.91, 59.93, 60.02, 60.09, 60.09, 60.02, 59.98, 60.01, 59.93, 59.85, 59.79, 59.71, 59.71, 59.61, 59.46, 59.46, 59.29, 59.18, 58.99, 58.88, 58.79, 58.69, 58.54, 58.44, 58.41, 58.51, 58.51, 58.57, 58.76, 58.87, 58.96, 58.97, 58.94, 58.99, 59.1, 59.05, 59.1, 59.19, 59.31, 59.41, 59.34, 59.19, 59.14, 59.14, 59.11, 59.03, 58.89, 58.89, 58.8, 58.53, 58.19, 57.89, 57.59, 57.31, 56.95, 56.61, 56.46, 56.36, 56.26, 56.07, 55.93, 55.85, 55.8, 55.74, 55.64, 55.54, 55.38, 55.21, 55.1, 54.94, 54.78, 54.59, 54.43, 54.35, 54.31, 54.24, 54.25, 54.26, 54.3, 54.33, 54.41, 54.34, 54.33, 54.28], "target": 45, "maxIdx": 59, "maxVal": 60.45, "minIdx": 138, "minVal": 53.8, "rawDates": ["2026-03-11", "2026-03-12", "2026-03-13", "2026-03-14", "2026-03-15", "2026-03-16", "2026-03-17", "2026-03-18", "2026-03-19", "2026-03-20", "2026-03-21", "2026-03-22", "2026-03-23", "2026-03-24", "2026-03-25", "2026-03-26", "2026-03-27", "2026-03-28", "2026-03-29", "2026-03-30", "2026-04-01", "2026-04-02", "2026-04-03", "2026-04-04", "2026-04-05", "2026-04-06", "2026-04-07", "2026-04-08", "2026-04-09", "2026-04-10", "2026-04-11", "2026-04-12", "2026-04-13", "2026-04-14", "2026-04-15", "2026-04-16", "2026-04-17", "2026-04-18", "2026-04-19", "2026-04-20", "2026-04-21", "2026-04-22", "2026-04-23", "2026-04-24", "2026-04-25", "2026-04-26", "2026-04-27", "2026-04-28", "2026-05-08", "2026-05-09", "2026-05-10", "2026-05-11", "2026-05-12", "2026-05-13", "2026-05-14", "2026-05-15", "2026-05-16", "2026-05-17", "2026-05-18", "2026-05-19", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-23", "2026-05-24", "2026-05-25", "2026-05-26", "2026-05-27", "2026-05-28", "2026-05-29", "2026-05-30", "2026-05-31", "2026-06-01", "2026-06-02", "2026-06-03", "2026-06-04", "2026-06-05", "2026-06-06", "2026-06-07", "2026-06-08", "2026-06-09", "2026-06-10", "2026-06-18", "2026-06-19", "2026-06-20", "2026-06-23", "2026-06-27", "2026-06-29", "2026-06-30", "2026-07-02", "2026-07-03", "2026-07-12", "2026-08-10", "2026-08-11", "2026-08-17", "2026-08-25", "2026-08-26", "2026-10-02", "2026-10-04", "2026-10-05", "2026-10-06", "2026-10-09", "2026-10-11", "2026-10-15", "2026-10-17", "2026-10-18", "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23", "2026-10-24", "2026-10-25", "2026-10-26", "2026-10-27", "2026-10-28", "2026-10-29", "2026-11-01", "2026-11-02", "2026-11-03", "2026-11-04", "2026-11-05", "2026-11-06", "2026-11-07", "2026-11-08", "2026-11-09", "2026-11-10", "2026-11-11", "2026-11-12", "2026-11-13", "2026-11-14", "2026-11-15", "2026-11-16", "2026-11-17", "2026-11-18", "2026-11-19", "2026-11-21", "2026-11-22", "2026-11-23", "2026-11-24", "2026-11-25", "2026-11-26"]};
 
     // fullData stores ALL records for client-side filtering
     const fullData = {
