@@ -471,10 +471,7 @@
     if (!raw) return;
     var entries = parseBulkText(raw);
     if (!entries.length) {
-      var hasDateBlock = /📅/.test(raw) || /空腹\d/.test(raw);
-      document.getElementById('food-rule-comment').textContent = hasDateBlock
-        ? '日期块下面没有食物条目'
-        : '没有找到日期块（需要像 📅11/8: 这样的行）';
+      document.getElementById('food-rule-comment').textContent = '没有解析出食物条目（检查一下输入内容）';
       return;
     }
     var btn = document.getElementById('food-parse-btn');
@@ -636,7 +633,9 @@
     var year = new Date().getFullYear();
     var currentMonth = new Date().getMonth() + 1;
     var entries = [];
-    var currentDate = null;
+    // 日付ブロックが無い行は「今日」に積む（今日の飲食をそのまま貼る使い方を壊さない）
+    // toLocaleDateString('sv-SE') はローカル時刻の YYYY-MM-DD（toISOString は UTC で日付がずれる）
+    var currentDate = new Date().toLocaleDateString('sv-SE');
     var lines = raw.split('\n');
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i].trim();
